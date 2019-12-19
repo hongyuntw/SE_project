@@ -37,7 +37,7 @@ tokens = ['CONTENT'] + list(op_dict.values()) + list(keyword_dict.values()) + li
 
 
 def t_CONTENT(t):
-    r'[a-zA-Z_><=&^%!#$*0-9+\[\]\?\--]+'
+    r'[a-zA-Z_><=&^%!#$*0-9+\[\]\?\--\/]+'
     t.type = keyword_dict.get(t.value,'CONTENT')    # Check for reserved words
     return t
 
@@ -81,7 +81,7 @@ def t_error(t):
 lexer = lex.lex()
 
 # Test it out
-data = '''if(a>3){a++;}else{b++;c++;} k++;'''
+data = '''if(a<3){b;}'''
 
 lexer.input(data)
 
@@ -95,33 +95,68 @@ while True:
 g = Digraph('G', filename='cluster.gv')
 
 seq = 1
-
+layer = 0
 # def p_elseifstmt(p):
 #     '''elseifstmt : else '''
 
-# def p_ifstmt(p):
-#     '''ifstmt : if LP if_expression RP els LBRACE stmt RBRACE ers stmt brs'''
-
-
-
-
+def p_allstmt(p):
+    '''allstmt : 
+               | expression allstmt 
+               | ifstmt allstmt  
+               | whilestmt allstmt  '''
+        
+    p[0] = {'headNode': f'{seq}.{layer}','tailNode':f'{seq}.{layer}'}
+    if (len(p) == 2):
+        p[0]['headNode'] = p[1]['headNode']
+        p[0]['tailNode'] = p[1]['headNode']
+    elif (len(p) == 3):
+        p[0]['headNode'] = p[1]['headNode']
+        p[0]['tailNode'] = p[2]['tailNode']
+        
+        g.edge(p[1]['tailNode'],p[2]['headNode'])
+        # create arrow 
 
 
 def p_stmt(p):
-    '''stmt : 
-            | expression stmt
-            | if LP if_expression RP els LBRACE stmt RBRACE ers stmt brs
-            | while LP if_expression RP els LBRACE stmt RBRACE ers stmt brs
-            | else LBRACE stmt RBRACE stmt'''
+    '''stmt : expression
+            | expression stmt'''
     if (len(p) == 1):
         p[0] = ''
     elif (len(p) == 3):
         p[0] = p[1] + p[2]
+    print('Parse stmt!!!', len(p))
 
-    # else .....
-    if (len(p) == 5 and p[1] == 'else'):
-        p[0] = p[3]
-    # while
+# def p_elseifstmt(p):
+#     '''elseifstmt : else ifstmt brs'''
+#     print('test elseif')
+
+
+def p_ifstmt(p):
+    '''ifstmt : IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif
+              | IF LP if_expression RP els LBRACE allstmt RBRACE ers'''
+    
+    p[0] = {'headNode': p[3]['headNode'], 'tailNode': f'{seq}.{layer}'}
+    g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
+    if len(p) == 11:
+        g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
+        
+
+
+def p_ifelseif(p):
+    ''' ifelseif : ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers gns
+                 | ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif gns
+                 | ELSE LBRACE allstmt RBRACE gns'''
+    if (len(p) == 12):
+        p[0] = {'headNode': p[4]['headNode'], 'tailNode': f'{seq}.{layer}'}
+    else:
+        p[0] = {'headNode': p[3]['headNode'],'tailNode':f'{seq}.{layer}'}
+    print('ifelseif in ')
+
+
+
+def p_whilestmt(p):
+    '''whilestmt : while LP if_expression RP els LBRACE allstmt RBRACE ers allstmt brs'''
+   # while
     if (len(p) == 12 and p[1] == 'while'):
         # judgement
         g.node(str(p[11]), str(p[3]))
@@ -137,39 +172,26 @@ def p_stmt(p):
         g.edge(str(p[11]),str(p[9]),label='false')
         
 
+def p_gns(p):
+    '''gns : '''
 
-    #  if ......
-    if (len(p) == 12 and p[1]=='if'):
-        # els
-        g.node(str(p[5]),str(p[7]))
-        # ers
-        g.node(str(p[9]),str(p[10]))
-        # judgement
-        g.node(str(p[11]), str(p[3]))
-        # link the edge and node
-        # lhs
-        g.edge(str(p[11]), str(p[9]),label='false')
-        # rhs
-        g.edge(str(p[11]), str(p[5]),label='true')
-
-        
-        
-
-    print('Parse stmt!!!', len(p))
-    
 # enter left side scope
 def p_els(p):
     '''els : '''
+    print('els in')
     global seq
     seq += 1
+    layer = 0
     p[0] = seq
         # set current scope to left.
 
 # enter right side scope
 def p_ers(p):
     '''ers : '''
+    print('ers in')
     global seq
     seq += 1
+    layer = 0
     p[0] = seq 
         # set current scope to left.
 
@@ -188,33 +210,41 @@ def p_if(p):
 def p_else(p):
     '''else : ELSE'''
     p[0] = 'else'
-    print('else if in')
+    print('else in')
+
 
 def p_while(p):
     '''while : WHILE'''
     p[0] = 'while'
     print('while in ')
+
+def p_if_exp_p(p):
+    ''' if_exp_p :    CONTENT 
+                 | LP if_exp_p RP'''
+    p[0] = {'Content': ''.join(p[1:])}
     
 def p_if_expression(p):
-    '''if_expression :  CONTENT 
-                     | LP if_expression RP'''
-    # if p.slice[1].type == 'CONTENT':
-    #     p.slice[0].value = p.slice[1].value
-    # elif p.slice[2].type == 'if_expression':
-    #     p.slice[0].value = p.slice[2].value
-    p[0] = ''.join(p[1:])
-    for i in range(1,len(p)):
-        print(p[i])
+    '''if_expression : if_exp_p'''
+    global layer
     if (len(p) == 2):
-        p[0] = p[1]
+        p[0] = {'headNode': f'{seq}.{layer}', 'tailNode': f'{seq}.{layer}'}
+        # create Node
+        g.node(f'{seq}.{layer}',p[1]['Content'])
+        layer += 1
     print('if_expression in ')
-        
+
+
+
 def p_expression(p):
-    '''expression : CONTENT SEMI
-                  | expression CONTENT SEMI '''
-    # for i in range(1,len(p)):
+    '''expression : CONTENT SEMI'''
+    global layer
+
+
+    # draw a node
+    g.node(f'{seq}.{layer}', p[1] + p[2])
+    p[0] = {'headNode': f'{seq}.{layer}', 'tailNode': f'{seq}.{layer}'}
+    layer += 1
     print(''.join(p[1:]))
-    p[0] = ''.join(p[1:])
     print('expression in ')
 
     
