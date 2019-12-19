@@ -81,7 +81,21 @@ def t_error(t):
 lexer = lex.lex()
 
 # Test it out
-data = '''if(a<3){b;}'''
+data = '''
+    if(a>0){
+        c--;
+        d++;
+    }
+    else if(a<0){
+        c++;
+    }
+    else if(k<0){
+        k++;
+    }
+    else{
+        fuck;
+    }
+'''
 
 lexer.input(data)
 
@@ -104,27 +118,32 @@ def p_allstmt(p):
                | expression allstmt 
                | ifstmt allstmt  
                | whilestmt allstmt  '''
-        
-    p[0] = {'headNode': f'{seq}.{layer}','tailNode':f'{seq}.{layer}'}
+    if (len(p) == 1):
+        print('this is empty allstmt')
+    # p[0] = {'headNode': f'{seq}.{layer}','tailNode':f'{seq}.{layer}'}
     if (len(p) == 2):
         p[0]['headNode'] = p[1]['headNode']
         p[0]['tailNode'] = p[1]['headNode']
     elif (len(p) == 3):
-        p[0]['headNode'] = p[1]['headNode']
-        p[0]['tailNode'] = p[2]['tailNode']
-        
-        g.edge(p[1]['tailNode'],p[2]['headNode'])
-        # create arrow 
+        if (not (p[2] is None)):
+            p[0] = {'headNode': '','tailNode':''}
+            p[0]['headNode'] = p[1]['headNode']
+            p[0]['tailNode'] = p[2]['tailNode']
+            g.edge(p[1]['tailNode'],p[2]['headNode'])
+        else:
+            p[0] = {'headNode': '','tailNode':''}
+            p[0]['headNode'] = p[1]['headNode']
+            p[0]['tailNode'] = p[1]['tailNode']
 
 
-def p_stmt(p):
-    '''stmt : expression
-            | expression stmt'''
-    if (len(p) == 1):
-        p[0] = ''
-    elif (len(p) == 3):
-        p[0] = p[1] + p[2]
-    print('Parse stmt!!!', len(p))
+# def p_stmt(p):
+#     '''stmt : expression
+#             | expression stmt'''
+#     if (len(p) == 1):
+#         p[0] = ''
+#     elif (len(p) == 3):
+#         p[0] = p[1] + p[2]
+#     print('Parse stmt!!!', len(p))
 
 # def p_elseifstmt(p):
 #     '''elseifstmt : else ifstmt brs'''
@@ -135,11 +154,19 @@ def p_ifstmt(p):
     '''ifstmt : IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif
               | IF LP if_expression RP els LBRACE allstmt RBRACE ers'''
     
-    p[0] = {'headNode': p[3]['headNode'], 'tailNode': f'{seq}.{layer}'}
-    g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
     if len(p) == 11:
+        p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['tailNode']}
+        # true
+        g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
+        # false
         g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
-        
+    elif len(p) == 10:
+        p[0] = {'headNode': p[3]['headNode'], 'tailNode': f'{seq}.{layer}'}
+        # true
+        g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
+
+
+
 
 
 def p_ifelseif(p):
@@ -147,9 +174,23 @@ def p_ifelseif(p):
                  | ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif gns
                  | ELSE LBRACE allstmt RBRACE gns'''
     if (len(p) == 12):
-        p[0] = {'headNode': p[4]['headNode'], 'tailNode': f'{seq}.{layer}'}
-    else:
-        p[0] = {'headNode': p[3]['headNode'],'tailNode':f'{seq}.{layer}'}
+        # p[0] = {'headNode': p[4]['headNode'], 'tailNode': f'{seq}.{layer}'}
+        p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[8]['tailNode']}
+        # create edge
+        # true
+        g.edge(p[4]['tailNode'],p[8]['headNode'],label='true')
+    elif len(p) == 13:
+        p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[11]['tailNode']}
+        # create edge
+        # true
+        g.edge(p[4]['tailNode'], p[8]['headNode'], label='true')
+        # false
+        g.edge(p[4]['tailNode'], p[11]['headNode'], label='false')
+    elif len(p) == 6:
+        p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[3]['tailNode']}
+
+
+
     print('ifelseif in ')
 
 
@@ -180,6 +221,7 @@ def p_els(p):
     '''els : '''
     print('els in')
     global seq
+    global layer
     seq += 1
     layer = 0
     p[0] = seq
@@ -190,6 +232,7 @@ def p_ers(p):
     '''ers : '''
     print('ers in')
     global seq
+    global layer
     seq += 1
     layer = 0
     p[0] = seq 
@@ -238,8 +281,6 @@ def p_if_expression(p):
 def p_expression(p):
     '''expression : CONTENT SEMI'''
     global layer
-
-
     # draw a node
     g.node(f'{seq}.{layer}', p[1] + p[2])
     p[0] = {'headNode': f'{seq}.{layer}', 'tailNode': f'{seq}.{layer}'}
