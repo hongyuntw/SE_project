@@ -82,20 +82,25 @@ lexer = lex.lex()
 
 # Test it out
 data = '''
-    if(a>0){
-        c--;
-        d++;
-    }
-    else if(a<0){
+    if(1){
         c++;
+        if(2){
+            a++;
+        }
+        else{
+            if(12){
+                test;
+            }
+            a=5;
+        }
+        k--;
     }
-    else if(k<0){
-        k++;
-    }
-    else{
-        fuck;
-    }
+    d--;
+    a+1;
 '''
+# data = '''
+# if(a<4){b++;}else{c++;}k--;
+# '''
 
 lexer.input(data)
 
@@ -151,34 +156,56 @@ def p_allstmt(p):
 
 
 def p_ifstmt(p):
-    '''ifstmt : IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif
-              | IF LP if_expression RP els LBRACE allstmt RBRACE ers'''
+    '''ifstmt : IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif gns
+              | IF LP if_expression RP els LBRACE allstmt RBRACE ers allstmt'''
     
-    if len(p) == 11:
+    if len(p) == 12:
         p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['tailNode']}
         # true
         g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
         # false
         g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
-    elif len(p) == 10:
-        p[0] = {'headNode': p[3]['headNode'], 'tailNode': f'{seq}.{layer}'}
+
+        # edge
+        g.edge(p[7]['tailNode'], p[10]['tailNode'])
+        # g.edge(p[10]['tailNode'], p[11]['headNode'])
+
+
+    elif len(p) == 11:
         # true
         g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
+        if not (p[10] is None):
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['headNode']}
+            # false
+            g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
+            #  link
+            g.edge(p[7]['tailNode'], p[10]['headNode'])
+        else:
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
 
 
 
 
 
 def p_ifelseif(p):
-    ''' ifelseif : ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers gns
+    ''' ifelseif : ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers allstmt
                  | ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif gns
-                 | ELSE LBRACE allstmt RBRACE gns'''
+                 | ELSE LBRACE allstmt RBRACE allstmt'''
     if (len(p) == 12):
         # p[0] = {'headNode': p[4]['headNode'], 'tailNode': f'{seq}.{layer}'}
-        p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[8]['tailNode']}
         # create edge
         # true
-        g.edge(p[4]['tailNode'],p[8]['headNode'],label='true')
+        g.edge(p[4]['tailNode'], p[8]['headNode'], label='true')
+        
+        # 最後一個allstmt有東西
+        if not (p[11] is None):
+            g.edge(p[8]['tailNode'], p[11]['headNode'])
+            g.edge(p[4]['tailNode'], p[11]['headNode'], label='false')
+            p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[11]['headNode']}
+
+        else:
+            p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[8]['tailNode']}
+
     elif len(p) == 13:
         p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[11]['tailNode']}
         # create edge
@@ -186,9 +213,18 @@ def p_ifelseif(p):
         g.edge(p[4]['tailNode'], p[8]['headNode'], label='true')
         # false
         g.edge(p[4]['tailNode'], p[11]['headNode'], label='false')
-    elif len(p) == 6:
-        p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[3]['tailNode']}
+        # 
+        g.edge(p[8]['tailNode'], p[11]['tailNode'])
 
+
+    elif len(p) == 6:
+        # 最後一個allstmt有東西
+        if not (p[5] is None):
+            g.edge(p[3]['tailNode'], p[5]['headNode'])
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[5]['headNode']}
+
+        else:
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[3]['tailNode']}
 
 
     print('ifelseif in ')
@@ -196,21 +232,19 @@ def p_ifelseif(p):
 
 
 def p_whilestmt(p):
-    '''whilestmt : while LP if_expression RP els LBRACE allstmt RBRACE ers allstmt brs'''
-   # while
-    if (len(p) == 12 and p[1] == 'while'):
-        # judgement
-        g.node(str(p[11]), str(p[3]))
-        # if true do....
-        g.node(str(p[5]), str(p[7]))
-        # not break while loop do stmt
-        g.node(str(p[9]), str(p[10]))
-        
-        # true
-        g.edge(str(p[11]), str(p[5]),label='true')
-        g.edge(str(p[5]), str(p[11]),label='loop')
-        # break loop
-        g.edge(str(p[11]),str(p[9]),label='false')
+    '''whilestmt : while LP if_expression RP els LBRACE allstmt RBRACE ers'''
+    if len(p) == 10:
+        p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
+        # create edge
+        # true edge
+        g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
+        # false edge
+        # do something
+        # loop edge
+        g.edge( p[7]['tailNode'],p[3]['headNode'], label='loop')
+
+
+
         
 
 def p_gns(p):
