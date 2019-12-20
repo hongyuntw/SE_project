@@ -81,26 +81,33 @@ def t_error(t):
 lexer = lex.lex()
 
 # Test it out
-data = '''
-    if(1){
-        c++;
-        if(2){
-            a++;
-        }
-        else{
-            if(12){
-                test;
-            }
-            a=5;
-        }
-        k--;
-    }
-    d--;
-    a+1;
-'''
 # data = '''
-# if(a<4){b++;}else{c++;}k--;
+# if(a>0){
+#     while(1){
+#         break2;
+#     }
+# }
+# k++;
+# d--;
 # '''
+data = '''
+while(1){
+    c++;
+    if(a>0){
+        b++;
+        if(c<0){
+            c--;
+        }
+    }
+    else if(a<0){
+        a--;
+    }
+    else{
+        a---1;
+    }
+}
+a++;
+'''
 
 lexer.input(data)
 
@@ -115,6 +122,7 @@ g = Digraph('G', filename='cluster.gv')
 
 seq = 1
 layer = 0
+loopflag = False
 # def p_elseifstmt(p):
 #     '''elseifstmt : else '''
 
@@ -182,6 +190,9 @@ def p_ifstmt(p):
             g.edge(p[7]['tailNode'], p[10]['headNode'])
         else:
             p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
+            # g.edge(p[3]['tailNode'], p[7]['tailNode'], label='false')
+
+            
 
 
 
@@ -232,16 +243,24 @@ def p_ifelseif(p):
 
 
 def p_whilestmt(p):
-    '''whilestmt : while LP if_expression RP els LBRACE allstmt RBRACE ers'''
-    if len(p) == 10:
-        p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
-        # create edge
-        # true edge
+    '''whilestmt : while LP if_expression RP els LBRACE allstmt RBRACE ers allstmt'''
+
+    if len(p) == 11:
+        
+        # true
         g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
-        # false edge
-        # do something
-        # loop edge
-        g.edge( p[7]['tailNode'],p[3]['headNode'], label='loop')
+        # mark loop
+        g.edge(p[7]['tailNode'], p[3]['headNode'], label='loop')
+        if not (p[10] is None):
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['tailNode']}
+            # false
+            g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
+            #  link
+            # g.edge(p[7]['tailNode'], p[10]['headNode'])
+        else:
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
+            
+        
 
 
 
