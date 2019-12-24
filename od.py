@@ -70,7 +70,7 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 # A string containing ignored characters (spaces and tabs)
-t_ignore  = ' \t'
+t_ignore  = ' \t+'
 
 # Error handling rule
 def t_error(t):
@@ -91,26 +91,17 @@ lexer = lex.lex()
 # d--;
 # '''
 data = '''
-while(1){
-    c++;
-    if(a>0){
-        b++;
-        if(c<0){
-            c--;
-        }
-    }
-    else if(a<0){
+if(1){
+    while(1){
         a--;
     }
-    else{
-        a---1;
-    }
 }
-a++;
+d--;
 '''
 
-lexer.input(data)
 
+lexer.input(data)
+need_add_edge = {}
 # Tokenize
 while True:
     tok = lexer.token()
@@ -130,7 +121,8 @@ def p_allstmt(p):
     '''allstmt : 
                | expression allstmt 
                | ifstmt allstmt  
-               | whilestmt allstmt  '''
+               | whilestmt allstmt
+               | forstmt allstmt'''
     if (len(p) == 1):
         print('this is empty allstmt')
     # p[0] = {'headNode': f'{seq}.{layer}','tailNode':f'{seq}.{layer}'}
@@ -138,6 +130,7 @@ def p_allstmt(p):
         p[0]['headNode'] = p[1]['headNode']
         p[0]['tailNode'] = p[1]['headNode']
     elif (len(p) == 3):
+        print('allstmt in')
         if (not (p[2] is None)):
             p[0] = {'headNode': '','tailNode':''}
             p[0]['headNode'] = p[1]['headNode']
@@ -149,24 +142,47 @@ def p_allstmt(p):
             p[0]['tailNode'] = p[1]['tailNode']
 
 
-# def p_stmt(p):
-#     '''stmt : expression
-#             | expression stmt'''
-#     if (len(p) == 1):
-#         p[0] = ''
-#     elif (len(p) == 3):
-#         p[0] = p[1] + p[2]
-#     print('Parse stmt!!!', len(p))
+def p_forstmt(p):
+    '''forstmt : for LP for_expression RP els LBRACE allstmt RBRACE ers allstmt'''
+    # init
+    g.edge(p[3]['initNode'], p[3]['judgeNode'])
+    # true
+    g.edge(p[3]['judgeNode'], p[7]['headNode'], label='true')
+    # judge and do something...
+    g.edge(p[7]['tailNode'], p[3]['doNode'])
+    g.edge(p[3]['doNode'], p[3]['judgeNode'], label='loop')
+    if (p[10] is None):
+        p[0] = {'headNode': p[3]['initNode'], 'tailNode': p[7]['tailNode']}
 
-# def p_elseifstmt(p):
-#     '''elseifstmt : else ifstmt brs'''
-#     print('test elseif')
+    else:
+        p[0] = {'headNode': p[3]['initNode'], 'tailNode': p[10]['tailNode']}
+        # false
+        g.edge(p[3]['judgeNode'], p[10]['headNode'], label='false')
+
+      
+def p_for(p):
+    '''for : FOR'''
+    print('for in ')
+
+    
+def p_for_expression(p):
+    '''for_expression : CONTENT SEMI CONTENT SEMI CONTENT'''
+    global layer
+    global seq
+    p[0] = {'initNode': f'{seq}.{layer}', 'judgeNode': f'{seq}.{layer+1}', 'doNode': f'{seq}.{layer+2}'}
+    # create Node
+    g.node(f'{seq}.{layer}', p[1],shape='box')
+    g.node(f'{seq}.{layer+1}',p[3],shape='diamond')
+    g.node(f'{seq}.{layer+2}',p[5],shape='box')
+    layer = 0
+    seq += 1
+    print('for_expression in')
 
 
 def p_ifstmt(p):
     '''ifstmt : IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif gns
               | IF LP if_expression RP els LBRACE allstmt RBRACE ers allstmt'''
-    
+    global need_add_edge
     if len(p) == 12:
         p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['tailNode']}
         # true
@@ -175,23 +191,27 @@ def p_ifstmt(p):
         g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
 
         # edge
-        g.edge(p[7]['tailNode'], p[10]['tailNode'])
-        # g.edge(p[10]['tailNode'], p[11]['headNode'])
+        # 這邊代表if else if那邊還有下一層應該要連線，反之其實就是ifelseif後面沒東西了
+        if int(str(p[10]['headNode'][0])) != int(str(p[10]['tailNode'][0])):
+            g.edge(p[7]['tailNode'], p[10]['tailNode'])
 
 
     elif len(p) == 11:
         # true
         g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
+        # 最後還有東西
         if not (p[10] is None):
-            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['headNode']}
+            # tail or head tbd..
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['tailNode']}
             # false
             g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
             #  link
             g.edge(p[7]['tailNode'], p[10]['headNode'])
+            
+        
+        # 最後沒東西了
         else:
             p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
-            # g.edge(p[3]['tailNode'], p[7]['tailNode'], label='false')
-
             
 
 
@@ -201,41 +221,36 @@ def p_ifstmt(p):
 def p_ifelseif(p):
     ''' ifelseif : ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers allstmt
                  | ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif gns
-                 | ELSE LBRACE allstmt RBRACE allstmt'''
+                 | ELSE els LBRACE allstmt RBRACE ers allstmt'''
     if (len(p) == 12):
-        # p[0] = {'headNode': p[4]['headNode'], 'tailNode': f'{seq}.{layer}'}
-        # create edge
         # true
         g.edge(p[4]['tailNode'], p[8]['headNode'], label='true')
-        
         # 最後一個allstmt有東西
         if not (p[11] is None):
             g.edge(p[8]['tailNode'], p[11]['headNode'])
             g.edge(p[4]['tailNode'], p[11]['headNode'], label='false')
             p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[11]['headNode']}
-
         else:
             p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[8]['tailNode']}
 
     elif len(p) == 13:
         p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[11]['tailNode']}
-        # create edge
         # true
         g.edge(p[4]['tailNode'], p[8]['headNode'], label='true')
         # false
         g.edge(p[4]['tailNode'], p[11]['headNode'], label='false')
-        # 
-        g.edge(p[8]['tailNode'], p[11]['tailNode'])
+        # 這邊判斷後面的ifelseif是不是同一層？是的話代表其實後面沒有其他stmt,不用特別連，是的話要連
+        if int(str(p[11]['headNode'][0])) != int(str(p[11]['tailNode'][0])):
+            g.edge(p[8]['tailNode'], p[11]['tailNode'])
 
 
-    elif len(p) == 6:
+    elif len(p) == 8:
         # 最後一個allstmt有東西
-        if not (p[5] is None):
-            g.edge(p[3]['tailNode'], p[5]['headNode'])
-            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[5]['headNode']}
-
+        if not (p[7] is None):
+            g.edge(p[4]['tailNode'], p[7]['headNode'])
+            p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[7]['headNode']}
         else:
-            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[3]['tailNode']}
+            p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[4]['tailNode']}
 
 
     print('ifelseif in ')
@@ -244,21 +259,20 @@ def p_ifelseif(p):
 
 def p_whilestmt(p):
     '''whilestmt : while LP if_expression RP els LBRACE allstmt RBRACE ers allstmt'''
-
+    global need_add_edge
     if len(p) == 11:
-        
         # true
         g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
         # mark loop
         g.edge(p[7]['tailNode'], p[3]['headNode'], label='loop')
         if not (p[10] is None):
-            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['tailNode']}
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['headNode']}
             # false
             g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
-            #  link
-            # g.edge(p[7]['tailNode'], p[10]['headNode'])
+        # 後面沒東西
         else:
             p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
+            # false?
             
         
 
@@ -325,7 +339,7 @@ def p_if_expression(p):
     if (len(p) == 2):
         p[0] = {'headNode': f'{seq}.{layer}', 'tailNode': f'{seq}.{layer}'}
         # create Node
-        g.node(f'{seq}.{layer}',p[1]['Content'])
+        g.node(f'{seq}.{layer}',p[1]['Content'],shape='diamond')
         layer += 1
     print('if_expression in ')
 
@@ -335,7 +349,7 @@ def p_expression(p):
     '''expression : CONTENT SEMI'''
     global layer
     # draw a node
-    g.node(f'{seq}.{layer}', p[1] + p[2])
+    g.node(f'{seq}.{layer}', p[1] + p[2],shape='box')
     p[0] = {'headNode': f'{seq}.{layer}', 'tailNode': f'{seq}.{layer}'}
     layer += 1
     print(''.join(p[1:]))
