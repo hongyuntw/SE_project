@@ -1,11 +1,7 @@
-# ------------------------------------------------------------
-# calclex.py
-#
-# tokenizer for a simple expression evaluator for
-# numbers and +,-,*,/
-# ------------------------------------------------------------
+
 import ply.lex as lex
 import ply.yacc as yacc
+import math
 from graphviz import Digraph
 delimiters_dict = {
     '(': 'LP',
@@ -79,29 +75,35 @@ def t_error(t):
 
 # Build the lexer
 lexer = lex.lex()
-
-# Test it out
-# data = '''
-# if(a>0){
-#     while(1){
-#         break2;
-#     }
-# }
-# k++;
-# d--;
 # '''
 data = '''
 if(1){
-    while(1){
-        a--;
+    1;
+
+}
+else if(000){
+    a--;
+    while(check){
+        cccc;
     }
 }
-d--;
+else{
+    a--;
+    d--;
+    while(kkk){
+        cccc;
+    }
+}
+a--;
+if(a){
+    c==;
+}
+last;
+
 '''
-
-
+looplastflag = False
+looploca = ''
 lexer.input(data)
-need_add_edge = {}
 # Tokenize
 while True:
     tok = lexer.token()
@@ -113,9 +115,7 @@ g = Digraph('G', filename='cluster.gv')
 
 seq = 1
 layer = 0
-loopflag = False
-# def p_elseifstmt(p):
-#     '''elseifstmt : else '''
+
 
 def p_allstmt(p):
     '''allstmt : 
@@ -126,9 +126,6 @@ def p_allstmt(p):
     if (len(p) == 1):
         print('this is empty allstmt')
     # p[0] = {'headNode': f'{seq}.{layer}','tailNode':f'{seq}.{layer}'}
-    if (len(p) == 2):
-        p[0]['headNode'] = p[1]['headNode']
-        p[0]['tailNode'] = p[1]['headNode']
     elif (len(p) == 3):
         print('allstmt in')
         if (not (p[2] is None)):
@@ -182,7 +179,8 @@ def p_for_expression(p):
 def p_ifstmt(p):
     '''ifstmt : IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif gns
               | IF LP if_expression RP els LBRACE allstmt RBRACE ers allstmt'''
-    global need_add_edge
+    global looplastflag
+    global looploca
     if len(p) == 12:
         p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[10]['tailNode']}
         # true
@@ -192,7 +190,7 @@ def p_ifstmt(p):
 
         # edge
         # 這邊代表if else if那邊還有下一層應該要連線，反之其實就是ifelseif後面沒東西了
-        if int(str(p[10]['headNode'][0])) != int(str(p[10]['tailNode'][0])):
+        if math.floor(float(p[10]['headNode'])) != math.floor(float(p[10]['tailNode'])):
             g.edge(p[7]['tailNode'], p[10]['tailNode'])
 
 
@@ -206,12 +204,16 @@ def p_ifstmt(p):
             # false
             g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
             #  link
-            g.edge(p[7]['tailNode'], p[10]['headNode'])
-            
-        
+            # looplast
+            if looplastflag and p[7]['tailNode']==looploca:
+                g.edge(p[7]['tailNode'], p[10]['headNode'], label='false')
+                looplastflag = False
+            else:
+                g.edge(p[7]['tailNode'], p[10]['headNode'])
         # 最後沒東西了
         else:
             p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
+
             
 
 
@@ -222,12 +224,19 @@ def p_ifelseif(p):
     ''' ifelseif : ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers allstmt
                  | ELSE IF LP if_expression RP els LBRACE allstmt RBRACE ers ifelseif gns
                  | ELSE els LBRACE allstmt RBRACE ers allstmt'''
+    global looplastflag
+    global looploca
     if (len(p) == 12):
         # true
         g.edge(p[4]['tailNode'], p[8]['headNode'], label='true')
         # 最後一個allstmt有東西
         if not (p[11] is None):
-            g.edge(p[8]['tailNode'], p[11]['headNode'])
+            if looplastflag and p[8]['tailNode'] == looploca:
+                g.edge(p[8]['tailNode'], p[11]['headNode'], label='false')
+                looplastflag = False
+            else:
+                g.edge(p[8]['tailNode'], p[11]['headNode'])
+            
             g.edge(p[4]['tailNode'], p[11]['headNode'], label='false')
             p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[11]['headNode']}
         else:
@@ -240,14 +249,18 @@ def p_ifelseif(p):
         # false
         g.edge(p[4]['tailNode'], p[11]['headNode'], label='false')
         # 這邊判斷後面的ifelseif是不是同一層？是的話代表其實後面沒有其他stmt,不用特別連，是的話要連
-        if int(str(p[11]['headNode'][0])) != int(str(p[11]['tailNode'][0])):
+        if math.floor(float(p[11]['headNode'])) != math.floor(float(p[11]['tailNode'])):
             g.edge(p[8]['tailNode'], p[11]['tailNode'])
 
 
     elif len(p) == 8:
         # 最後一個allstmt有東西
         if not (p[7] is None):
-            g.edge(p[4]['tailNode'], p[7]['headNode'])
+            if looplastflag and p[4]['tailNode'] ==looploca:
+                looplastflag= False
+                g.edge(p[4]['tailNode'], p[7]['headNode'], label='false')
+            else:
+                g.edge(p[4]['tailNode'], p[7]['headNode'])
             p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[7]['headNode']}
         else:
             p[0] = {'headNode': p[4]['headNode'], 'tailNode': p[4]['tailNode']}
@@ -259,7 +272,9 @@ def p_ifelseif(p):
 
 def p_whilestmt(p):
     '''whilestmt : while LP if_expression RP els LBRACE allstmt RBRACE ers allstmt'''
-    global need_add_edge
+    global looplastflag
+    global looploca
+    looplastflag = False
     if len(p) == 11:
         # true
         g.edge(p[3]['tailNode'], p[7]['headNode'], label='true')
@@ -271,8 +286,10 @@ def p_whilestmt(p):
             g.edge(p[3]['tailNode'], p[10]['headNode'], label='false')
         # 後面沒東西
         else:
-            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[7]['tailNode']}
-            # false?
+            # origin tail = p[7]
+            p[0] = {'headNode': p[3]['headNode'], 'tailNode': p[3]['tailNode']}
+            looplastflag = True
+            looploca = p[3]['tailNode']
             
         
 
