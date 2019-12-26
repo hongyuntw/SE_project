@@ -103,10 +103,17 @@ lexer = lex.lex()
 # Test it out
 
 data = '''
-switch(ccc){
-    case 4:
-    case 5:
-        thisis5;
+switch(c){
+    case 0:
+    case 1:
+    case 2:
+        thisistwo;
+    case 3:
+        3333;
+}
+a--;
+if(c){
+    b--;
 }
 
 '''
@@ -115,6 +122,7 @@ casedict = {}
 myowndict = {}
 lexer.input(data)
 need_add_edge = {}
+defaultnodes = {}
 # Tokenize
 while True:
     tok = lexer.token()
@@ -172,72 +180,61 @@ def p_stmt(p):
 
 
 def p_switch_stmt(p):
-    '''switch_stmt : SWITCH LP CONTENT RP LBRACE case_stmt RBRACE stmt'''
+    '''switch_stmt : SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt'''
     global myowndict
     global casedict
+    flag = False
     p[0] = GetInitData()
     # p0 headnode?
-    case_head_node = []
+    edgedict = {}
     for head in p[6]['headNodes']:
-        text = p[3]
-        temp = text + '==' + myowndict[head]
-        # 把原本的nodes換掉
-        origin_node = '\t' + head
-        g.node(head,label=temp,shape='diamond')
-        # true link
-        # get current head seq and layer
+        g.edge(p[3]['tailNodes'][0], head, label='switch')
         if (head in casedict):
-            g.edge(head,casedict[head],label='true')
+            pass
         else:
-
             seq_t = int(head[: head.find('.')])
             layer_t = int(head[head.find('.')+1 :])+1
             belinknode = f'{seq_t}.{layer_t}'
-            g.edge(head, belinknode, label='true')
-    # false link
-
-    # record the edge
-    edgedict = {}
-    alreadylink = []
-
-    for i in range(len(p[6]['headNodes'])):
-        if not p[6]['headNodes'][i] in casedict:
-            try:
-                g.edge(p[6]['headNodes'][i], p[6]['headNodes'][i + 1], label='false')
-                edgedict[p[6]['headNodes'][i]] = [p[6]['headNodes'][i + 1]]
-            except:
-                g.edge(p[6]['headNodes'][i], p[8]['headNodes'][0], label='false')
-                edgedict[p[6]['headNodes'][i]] = p[8]['headNodes'][0]
-    # update casedict
+            if(head in defaultnodes):
+                g.edge(head, defaultnodes[head][-1])
+                flag = True
+            else:
+                g.edge(head, belinknode)
+                edgedict[head] = belinknode
     newcasedict = {}
-    for k, v in sorted(list(casedict.items()), key=lambda x:x[0].lower(), reverse=True):
-        if v in newcasedict:
-            newcasedict[k] = newcasedict[v]
-        else:
-            newcasedict[k] = v
+    i = 0
+    count = 0
+    keys = casedict.keys()
+    keys = list(keys)
+    keys = [k for k in keys if k in p[6]['headNodes']]
+    while (1):
+        try:
+            k = keys[i]
+            v = casedict[k]
+            newcasedict[k] = edgedict[v]
+            edgedict[k] = edgedict[v]
+            count += 1
+            i += 1
+            i = i % len(keys)
+            if (count >= len(keys)):
+                break
+        except:
+            i += 1
+            if len(keys)>0:
+                i = i % len(keys)
+            if (count >= len(keys)):
+                break
 
     for k,v in newcasedict.items():
-        g.edge(k, edgedict[v], label='false')
+        g.edge(k, newcasedict[k])
         
-
-    # for i in range(len(p[6]['headNodes'])-1, -1, -1):
-    #     if i == len([6]['headNodes']) - 1:
-    #         g.edge(p[6]['headNodes'][i], p[8]['headNodes'][0], label='false')
-    #     else:
-    #         if p[6]['headNodes'][i] in casedict:
-    #         else:
-    #             g.edge
-
-
-
-            
-
-    
     for tail in p[6]['tailNodes']:
         g.edge(tail,p[8]['tailNodes'][0])
-
-    p[0]['headNodes'].append(p[6]['headNodes'][0])
+    p[0]['headNodes'].append(p[3]['headNodes'][0])
     p[0]['tailNodes'] = p[8]['tailNodes']
+#  default
+    if (not flag):
+        g.edge(p[3]['headNodes'][0],p[8]['headNodes'][0],label='nodefault')
 
     
         
@@ -251,9 +248,20 @@ def p_case_stmt(p):
     p[0] = GetInitData()
     global myowndict
     global casedict
+    global defaultnodes
+    global layer
     if len(p) == 5:
         p[0]['headNodes'] = p[2]['headNodes']
         p[0]['tailNodes'] = p[4]['tailNodes']
+    elif len(p) == 4:
+        print('default')
+        g.node(f'{seq}.{layer}', label='default', shape='box')
+        p[0]['headNodes'].append(f'{seq}.{layer}')
+        p[0]['tailNodes'] = p[3]['tailNodes']
+        defaultnodes[f'{seq}.{layer}'] = p[3]['tailNodes']
+        layer+=1
+
+
     elif len(p) == 6:
         if (myowndict[p[4]['headNodes'][0]] == 'empty'):
             casedict[p[2]['headNodes'][0]] = p[5]['headNodes'][0]
