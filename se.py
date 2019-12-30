@@ -97,18 +97,25 @@ lexer = lex.lex()
 # Test it out
 
 data = '''
-for(int i=0;i<3;i++){
-    if(a){
-        a++;
+if(a){
+    if(c){
+        if(d){
+            asdf;
+        }
     }
-    k--;
 }
-k++;
+else {
+    c--;
+}
+a--;
 '''
+
+
+lexer.input(data)
+
 
 casedict = {}
 myowndict = {}
-lexer.input(data)
 need_add_edge = {}
 defaultnodes = {}
 alledge =  []
@@ -231,7 +238,6 @@ def p_switch_stmt(p):
         alledge.append((tail,p[8]['tailNodes'][0],''))
     p[0]['headNodes'].append(p[3]['headNodes'][0])
     p[0]['tailNodes'] = p[8]['tailNodes']
-#  default
     if (not flag):
         g.edge(p[3]['headNodes'][0],p[8]['headNodes'][0])
         alledge.append((p[3]['headNodes'][0],p[8]['headNodes'][0],''))
@@ -283,7 +289,7 @@ def p_case_stmt(p):
 
 
 def p_ifstmt(p):
-    '''ifstmt : IF LP bool_expr RP LBRACE stmts RBRACE elif stmt
+    '''ifstmt : IF LP bool_expr RP LBRACE stmts RBRACE elifs stmt
               | IF LP bool_expr RP LBRACE stmts RBRACE stmt'''
     global alledge
     p[0] = GetInitData()
@@ -332,6 +338,7 @@ def p_elseif(p):
 
 def p_else(p):
     '''else : ELSE LBRACE stmts RBRACE'''
+    print('else in')
     p[0] = {'headNodes': p[3]['headNodes'],
             'tailNodes': p[3]['tailNodes']}
 
@@ -399,7 +406,6 @@ def p_bool_expr(p):
     g.node(f'{seq}.{layer}', p[1], shape='diamond')
     allnode[f'{seq}.{layer}'] = (p[1],'diamond')
     myowndict[f'{seq}.{layer}'] = p[1]
-
     layer += 1
 
 
@@ -437,7 +443,6 @@ def p_error(p):
 parser = yacc.yacc()
 
 parser.parse(data, lexer=lexer)
-
 # create a new graph without empty
 newg = Digraph('G', filename='newcluster.gv')
 emptylist = []
