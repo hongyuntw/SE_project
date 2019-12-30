@@ -77,29 +77,15 @@ def t_error(t):
 lexer = lex.lex()
 # '''
 data = '''
+int a;
 if(1){
-    1;
-
+    for(int i=0;i<3;i++){
+    xxx;
+    sss;
 }
-else if(000){
-    a--;
-    while(check){
-        cccc;
-    }
-}
-else{
-    a--;
-    d--;
-    while(kkk){
-        cccc;
-    }
-}
+k--;
 a--;
-if(a){
-    c==;
 }
-last;
-
 '''
 looplastflag = False
 looploca = ''
@@ -149,7 +135,9 @@ def p_forstmt(p):
     g.edge(p[7]['tailNode'], p[3]['doNode'])
     g.edge(p[3]['doNode'], p[3]['judgeNode'], label='loop')
     if (p[10] is None):
-        p[0] = {'headNode': p[3]['initNode'], 'tailNode': p[7]['tailNode']}
+        p[0] = {'headNode': p[3]['initNode'], 'tailNode': p[3]['initNode']}
+        looplastflag = True
+        looploca = p[3]['initNode']
 
     else:
         p[0] = {'headNode': p[3]['initNode'], 'tailNode': p[10]['tailNode']}
@@ -163,14 +151,14 @@ def p_for(p):
 
     
 def p_for_expression(p):
-    '''for_expression : CONTENT SEMI CONTENT SEMI CONTENT'''
+    '''for_expression : CONTENT CONTENT SEMI CONTENT SEMI CONTENT'''
     global layer
     global seq
     p[0] = {'initNode': f'{seq}.{layer}', 'judgeNode': f'{seq}.{layer+1}', 'doNode': f'{seq}.{layer+2}'}
     # create Node
-    g.node(f'{seq}.{layer}', p[1],shape='box')
-    g.node(f'{seq}.{layer+1}',p[3],shape='diamond')
-    g.node(f'{seq}.{layer+2}',p[5],shape='box')
+    g.node(f'{seq}.{layer}', p[1]+' '+p[2],shape='box')
+    g.node(f'{seq}.{layer+1}',p[4],shape='diamond')
+    g.node(f'{seq}.{layer+2}',p[6],shape='box')
     layer = 0
     seq += 1
     print('for_expression in')
@@ -363,11 +351,16 @@ def p_if_expression(p):
 
 
 def p_expression(p):
-    '''expression : CONTENT SEMI'''
+    '''expression : CONTENT SEMI
+                  | CONTENT CONTENT SEMI'''
     global layer
-    # draw a node
-    g.node(f'{seq}.{layer}', p[1] + p[2],shape='box')
-    p[0] = {'headNode': f'{seq}.{layer}', 'tailNode': f'{seq}.{layer}'}
+    if (len(p) == 3):
+        # draw a node
+        g.node(f'{seq}.{layer}', p[1] + p[2],shape='box')
+        p[0] = {'headNode': f'{seq}.{layer}', 'tailNode': f'{seq}.{layer}'}
+    else:
+        g.node(f'{seq}.{layer}', p[1] +' '+ p[2] + p[3],shape='box')
+        p[0] = {'headNode': f'{seq}.{layer}', 'tailNode': f'{seq}.{layer}'}
     layer += 1
     print(''.join(p[1:]))
     print('expression in ')

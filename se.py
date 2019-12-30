@@ -97,25 +97,13 @@ lexer = lex.lex()
 # Test it out
 
 data = '''
-switch(c){
-    case 0:
-    case 1:
-    case 2:
-        thisistwo;
-        break;
-    case 3:
-        3333;
-        break;
-}
-a--;
-if(c){
-    b--;
-}
-int c=0;
 for(int i=0;i<3;i++){
-    c--;
+    if(a){
+        a++;
+    }
+    k--;
 }
-a--;
+k++;
 '''
 
 casedict = {}
@@ -175,7 +163,7 @@ def p_stmt(p):
         p[0]['headNodes'] = [f'{seq}.{layer}.{empty}']
         p[0]['tailNodes'] = p[0]['headNodes']
         g.node(f'{seq}.{layer}.{empty}', 'empty')
-        allnode[f'{seq}.{layer}.{empty}']= 'empty'
+        allnode[f'{seq}.{layer}.{empty}']= ('empty','')
         myowndict[f'{seq}.{layer}.{empty}'] = 'empty'
         empty += 1
     else:
@@ -270,7 +258,7 @@ def p_case_stmt(p):
     elif len(p) == 4:
         print('default')
         g.node(f'{seq}.{layer}', label='default', shape='box')
-        allnode[f'{seq}.{layer}'] = 'default'
+        allnode[f'{seq}.{layer}'] = ('default','box')
         p[0]['headNodes'].append(f'{seq}.{layer}')
         p[0]['tailNodes'] = p[3]['tailNodes']
         defaultnodes[f'{seq}.{layer}'] = p[3]['tailNodes']
@@ -389,11 +377,11 @@ def p_for_expr(p):
     global allnode
     p[0] = GetInitData()
     g.node(f'{seq}.{layer}', p[1], shape='box')
-    allnode[f'{seq}.{layer}'] = p[1]
+    allnode[f'{seq}.{layer}'] = (p[1],'box')
     g.node(f'{seq}.{layer+1}', p[3], shape='diamond')
-    allnode[f'{seq}.{layer+1}'] = p[3]
+    allnode[f'{seq}.{layer+1}'] = (p[3],'diamond')
     g.node(f'{seq}.{layer+2}', p[5], shape='box')
-    allnode[f'{seq}.{layer+2}'] = p[5]
+    allnode[f'{seq}.{layer+2}'] = (p[5],'box')
     p[0]['initNodes'] = [f'{seq}.{layer}']
     p[0]['boolNodes'] = [f'{seq}.{layer+1}']
     p[0]['postNodes'] = [f'{seq}.{layer+2}']
@@ -409,7 +397,7 @@ def p_bool_expr(p):
             'tailNodes': [f'{seq}.{layer}']}
     # create Node
     g.node(f'{seq}.{layer}', p[1], shape='diamond')
-    allnode[f'{seq}.{layer}'] = p[1]
+    allnode[f'{seq}.{layer}'] = (p[1],'diamond')
     myowndict[f'{seq}.{layer}'] = p[1]
 
     layer += 1
@@ -423,7 +411,7 @@ def p_expr(p):
     p[0] = {'headNodes': [f'{seq}.{layer}'],
             'tailNodes': [f'{seq}.{layer}']}
     g.node(f'{seq}.{layer}', p[1] + p[2], shape='box')
-    allnode[f'{seq}.{layer}'] = p[1]+p[2]
+    allnode[f'{seq}.{layer}'] = (p[1]+p[2],'box')
     myowndict[f'{seq}.{layer}'] = p[1] + p[2]
 
     layer += 1
@@ -454,8 +442,8 @@ parser.parse(data, lexer=lexer)
 newg = Digraph('G', filename='newcluster.gv')
 emptylist = []
 for k,v in allnode.items():
-    if v != 'empty':
-        newg.node(k,v)
+    if v[0] != 'empty':
+        newg.node(k, v[0].replace(';',''), shape=v[1])
     else:
         emptylist.append(k)
 
@@ -470,11 +458,11 @@ for emptynode in emptylist:
             # a->empty->b
             # 把a->b
             for tp2 in alledge:
-                startnode2 = tp[0]
-                endnode2  = tp[1]
-                label2 = tp[2]
+                startnode2 = tp2[0]
+                endnode2  = tp2[1]
+                label2 = tp2[2]
                 if startnode2 == emptynode:
-                    newg.edge(startNode,endnode2,label=label)
+                    newg.edge(startnode,endnode2,label=label)
                         
 for tp in alledge:
     startnode = tp[0]
