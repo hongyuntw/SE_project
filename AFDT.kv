@@ -1,0 +1,75 @@
+<UI>:
+	#background color
+	canvas.before: 
+        Color: 
+			rgb: 0, 0, 0
+        Rectangle: 
+            pos: self.pos 
+            size: self.size 				
+	
+	#UI reference
+	sysMessageLabel:sysMessageLabel	
+	fileChooser:fileChooser
+	displayCode:displayCode
+	displayImage:displayImage
+	orientation: 'vertical'
+	
+	# component
+	BoxLayout:
+		orientation: 'horizontal'
+		size_hint_y: 0.9
+		spacing: 2		
+		ButtonList:		
+		Filechooser:
+			id:fileChooser		
+		DisplayCode:
+			id:displayCode	
+		DisplayImage:
+			id:displayImage	
+	SysMessage:
+		id:sysMessageLabel
+		
+<ButtonList>:
+	orientation: 'vertical'
+	size_hint_x: 0.2		
+	Button:
+		text: 'Import file'
+		on_press:root.importFile()	
+	Button:
+		text: 'Draw Diagram'	
+	Button:
+		text: 'Clear'	
+		on_press:root.clear()	
+	Button:
+		text: 'Save Image'
+	
+<DisplayImage>
+	size_hint_x: 0.4	
+	Image:
+		source:'exampleflow.png'
+	
+<DisplayCode>
+	text_size: root.width, root.height	
+    valign: 'middle'
+	size: self.texture_size	
+	size_hint_x: 0.4
+	
+
+<SysMessage>:		
+    size_hint_y: 0.2
+	text: 'Welcome to AFDT'
+	canvas.before: 
+        Color: 
+			rgb: .5, .5, .4
+        Rectangle: 
+            pos: self.pos 
+            size: self.size 				
+	
+<Filechooser>: 
+    size_hint_x: None
+	width: '0dp'
+	
+    # Creating the File list / icon view 	
+    FileChooserIconView:
+		size_hint_x: 0.4		
+        on_selection: root.select(*args) 
