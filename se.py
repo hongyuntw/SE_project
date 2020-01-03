@@ -45,7 +45,7 @@ tokens = ['CONTENT'] + list(op_dict.values()) + \
 
 
 def t_CONTENT(t):
-    r'[a-zA-Z_><=&^%!#$*0-9+\[\]\?\--\/]+'
+    r'[a-zA-Z_><=&^%!#$*0-9+\[\]\?\--\/,]+'
     t.type = keyword_dict.get(t.value, 'CONTENT')    # Check for reserved words
     return t
 
@@ -97,29 +97,40 @@ lexer = lex.lex()
 # Test it out
 
 data = '''
-if(a){
-    if(c){
-        if(d){
-            asdf;
-        }
-    }
-}
-else {
-    c--;
+while(1){
+    a--;
+    b++;
+    break;
 }
 a--;
+while(1){
+    c++;
+    d--;
+    a--;
+    e--;
+}
 '''
 
 
 lexer.input(data)
-
-
+# global 
 casedict = {}
 myowndict = {}
 need_add_edge = {}
 defaultnodes = {}
+# 記錄每個node and edge for最後empty處理的部分
 alledge =  []
 allnode = {}
+seq = 1
+layer = 0
+empty = 0
+loopflag = False
+# break資訊
+breaknodes = []
+skipbreaknodes = []
+
+previous_node = ''
+skipbreaknodes = []
 # Tokenize
 while True:
     tok = lexer.token()
@@ -128,11 +139,6 @@ while True:
     print(tok)
 
 g = Digraph('G', filename='cluster.gv')
-seq = 1
-layer = 0
-empty = 0
-loopflag = False
-
 
 def GetInitData():
     return {'headNodes': [],
@@ -143,17 +149,31 @@ def p_stmts(p):
     '''stmts : stmt
              | stmt stmts'''
     global alledge
+    global allnode
+    global breaknodes
+    global skipbreaknodes
     p[0] = GetInitData()
-    if(len(p) == 2):
+    if (len(p) == 2):
         p[0]['headNodes'] = p[1]['headNodes']
         p[0]['tailNodes'] = p[1]['tailNodes']
+        # if allnode[p[1]['headNodes'][0]][0] == 'break;':
+        #     breaknodes.append(p[1]['headNodes'][0])            
     if (len(p) == 3):
-        p[0]['headNodes'] = p[1]['headNodes']
-        p[0]['tailNodes'] = p[2]['tailNodes']
+        # check breaknodes
         for startNode in p[1]['tailNodes']:
             for endNode in p[2]['headNodes']:
-                g.edge(startNode, endNode)
-                alledge.append((startNode,endNode,''))
+                # if endNode in breaknodes:
+                #     skipbreaknodes.append(startNode)
+                # else:
+                if not startNode in skipbreaknodes:
+                    g.edge(startNode, endNode)
+                    alledge.append((startNode, endNode, ''))
+        # if p[2]['headNodes'][0] in breaknodes:
+        #     p[0]['headNodes'] = p[1]['headNodes']
+        #     p[0]['tailNodes'] = p[1]['tailNodes']
+        # else:
+        p[0]['headNodes'] = p[1]['headNodes']
+        p[0]['tailNodes'] = p[2]['tailNodes']
 
 
 def p_stmt(p):
@@ -184,8 +204,13 @@ def p_switch_stmt(p):
     global myowndict
     global casedict
     global alledge
+    global layer
     flag = False
     p[0] = GetInitData()
+
+    tp = allnode[p[3]['headNodes'][0]]
+    allnode[p[3]['headNodes'][0]] = (tp[0], 'house')
+    
     # p0 headnode?
     edgedict = {}
     for head in p[6]['headNodes']:
@@ -347,6 +372,7 @@ def p_whilestmt(p):
     '''whilestmt : WHILE LP bool_expr RP LBRACE stmts RBRACE stmt'''
     p[0] = GetInitData()
     global alledge
+    global skipbreaknodes
     p[0]['headNodes'] = p[3]['headNodes']
     p[0]['tailNodes'] = p[8]['tailNodes']
     # true
@@ -354,10 +380,18 @@ def p_whilestmt(p):
     alledge.append((p[3]['tailNodes'][0],p[6]['headNodes'][0],'true'))
     # false
     g.edge(p[3]['tailNodes'][0], p[8]['headNodes'][0], label='false')
-    alledge.append((p[3]['tailNodes'][0],p[8]['headNodes'][0],'false'))
-    # loop
-    g.edge(p[6]['tailNodes'][0], p[3]['headNodes'][0], label='loop')
-    alledge.append((p[6]['tailNodes'][0],p[3]['headNodes'][0],'loop'))
+    alledge.append((p[3]['tailNodes'][0], p[8]['headNodes'][0], 'false'))
+    
+
+    # normal
+    if p[6]['tailNodes'][0] in skipbreaknodes:
+        # break
+        g.edge(p[6]['tailNodes'][0], p[8]['headNodes'][0], label='break')
+        alledge.append((p[6]['tailNodes'][0],p[8]['headNodes'][0],'break'))
+    else:
+        # loop
+        g.edge(p[6]['tailNodes'][0], p[3]['headNodes'][0], label='loop')
+        alledge.append((p[6]['tailNodes'][0],p[3]['headNodes'][0],'loop'))
 
 
 def p_forstmt(p):
@@ -410,20 +444,45 @@ def p_bool_expr(p):
 
 
 def p_expr(p):
-    '''expr : contents SEMI'''
+    '''expr : contents SEMI
+            | func_expr SEMI'''
+    global previous_node
+    global skipbreaknodes
     global layer
     global myowndict
     # draw a node
-    p[0] = {'headNodes': [f'{seq}.{layer}'],
-            'tailNodes': [f'{seq}.{layer}']}
-    g.node(f'{seq}.{layer}', p[1] + p[2], shape='box')
-    allnode[f'{seq}.{layer}'] = (p[1]+p[2],'box')
-    myowndict[f'{seq}.{layer}'] = p[1] + p[2]
 
-    layer += 1
-    print(''.join(p[1:]))
-    print('expr in ')
+    name = ''.join(p[1:])
+    if name == 'break;':
+        p[0] = {'headNodes': [previous_node],
+                'tailNodes': [previous_node]}
+        skipbreaknodes.append(previous_node)
+    else:
+        p[0] = {'headNodes': [f'{seq}.{layer}'],
+                'tailNodes': [f'{seq}.{layer}']}
+        g.node(f'{seq}.{layer}', name, shape='box')
+        allnode[f'{seq}.{layer}'] = (name,'box')
+        myowndict[f'{seq}.{layer}'] = name
+        previous_node = f'{seq}.{layer}'
+        layer += 1
+        print(''.join(p[1:]))
+        print('expr in ')
+    
 
+def p_func(p):
+    '''func_expr : contents LP params RP'''
+    p[0] = ''.join(p[1:])
+
+def p_param(p):
+    '''param : contents
+             | func_expr '''
+    p[0] = ''.join(p[1:])
+
+def p_params(p):
+    '''params : param
+              | param params'''
+    p[0] = ''.join(p[1:])
+    
 
 def p_contents(p):
     ''' contents : CONTENT 
@@ -454,21 +513,54 @@ for k,v in allnode.items():
 
 # 處理empty node
 for emptynode in emptylist:
+    origin_empty_node = emptynode
+    # tp = tuple
     for tp in alledge:
         startnode = tp[0]
         endnode  = tp[1]
         label = tp[2]
         # 有連到empty的
-        if endnode == emptynode:
+        # a -> empty
+        if endnode == emptynode and not (startnode in emptylist):
             # a->empty->b
+            # a->empty->empty->b
             # 把a->b
-            for tp2 in alledge:
-                startnode2 = tp2[0]
-                endnode2  = tp2[1]
-                label2 = tp2[2]
-                if startnode2 == emptynode:
-                    newg.edge(startnode,endnode2,label=label)
-                        
+            while (1):
+                flag = False
+                count = 0
+                # tp = tuple
+                for tp2 in alledge:
+                    startnode2 = tp2[0]
+                    endnode2  = tp2[1]
+                    label2 = tp2[2]
+                    # empty -> empty 不該處理
+                    if startnode2 == emptynode and (not endnode2 in emptylist):
+                        # check接下來
+                        newg.edge(startnode, endnode2, label=label)
+                        flag = True
+                        count += 1
+                        break
+                    # empty->empty->empty case
+                    elif startnode2 == emptynode and (endnode2 in emptylist):
+                        emptynode = endnode2
+                        count += 1
+                        break
+                # nothing change 都好像沒有變
+                if flag or count == 0:
+                    emptynode = origin_empty_node
+                    break
+
+
+# for tp in alledge:
+#     startnode = tp[0]
+#     endnode = tp[1]
+#     label = tp[2]
+#     # *** -> break -> xxx
+#     if allnode[endnode][0] == 'break;':
+        
+
+
+# 把之中沒有empty的edge連回去
 for tp in alledge:
     startnode = tp[0]
     endnode  = tp[1]
@@ -476,7 +568,6 @@ for tp in alledge:
     if not (startnode in emptylist or endnode in emptylist):
         newg.edge(startnode,endnode,label=label)
 
-
-
 g.view()
 newg.view()
+
