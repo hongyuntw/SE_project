@@ -3,6 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.label import Label
 from kivy.app import App
+from kivy.core.window import Window
 
 class UI(BoxLayout):
 
@@ -10,6 +11,8 @@ class UI(BoxLayout):
 
 
 class ButtonList(BoxLayout):
+
+
 
     def importFile(self):
         App.get_running_app().importFile()
@@ -51,6 +54,7 @@ class AFDT(App):
         self.sysMessage = 'Welcome to AFDT'
         self.fileName = ''
         self.hasOpenFolder = False
+        Window.bind(on_key_down=self._on_keyboard_down)
 
     #你想顯示啥用這個
     def setSystemMessage(self,text):
@@ -87,5 +91,19 @@ class AFDT(App):
             self.UI.displayCode.width = 0
             self.UI.fileChooser.size_hint_x = 0.4
             self.hasOpenFolder = True
+
+    def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
+        if len(modifiers) > 0 and modifiers[0] == 'ctrl':
+            if text == 'o':  # Ctrl+a
+                print('open folder')
+                self.setSystemMessage('open folder')
+                self.openFolder()
+            elif text == 's':
+                self.setSystemMessage('save img')
+                print('save img')
+            elif text == 'p':
+                self.setSystemMessage('analyze code')
+                print('analyze code')
+
 
 AFDT().run()
