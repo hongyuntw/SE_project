@@ -23,7 +23,7 @@
 		Filechooser:
 			id:fileChooser		
 		DisplayCode:
-			id:displayCode	
+			id:displayCode
 		DisplayImage:
 			id:displayImage	
 	SysMessage:
@@ -49,11 +49,12 @@
 		source:'exampleflow.png'
 	
 <DisplayCode>
-	text_size: root.width, root.height	
-    valign: 'middle'
-	size: self.texture_size	
-	size_hint_x: 0.4
-	
+	text: ''
+	Label:
+		text: root.text
+		text_size: root.width, None
+		size_hint_y: None
+		height: self.texture_size[1]
 
 <SysMessage>:		
     size_hint_y: 0.2

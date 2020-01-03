@@ -4,6 +4,7 @@ from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.label import Label
 from kivy.app import App
 from kivy.core.window import Window
+from kivy.uix.scrollview import ScrollView
 
 class UI(BoxLayout):
 
@@ -27,7 +28,10 @@ class DisplayImage(AnchorLayout):
     pass
 
 
-class DisplayCode(Label):
+class labelcode(Label):
+    pass
+
+class DisplayCode(ScrollView):
 
     pass
 
@@ -42,7 +46,9 @@ class Filechooser(BoxLayout):
     def select(self, *args):
         try:
             App.get_running_app().fileName = args[1][0]
-            print(args[1][0])
+            A.filename = args[1][0]
+            print('filename = ', A.fileName)
+            A.openFolder()
         except:
             pass
 
@@ -54,7 +60,7 @@ class AFDT(App):
         self.sysMessage = 'Welcome to AFDT'
         self.fileName = ''
         self.hasOpenFolder = False
-        Window.bind(on_key_down=self._on_keyboard_down)
+       # Window.bind(on_key_down=self._on_keyboard_down)
 
     #你想顯示啥用這個
     def setSystemMessage(self,text):
@@ -65,9 +71,8 @@ class AFDT(App):
         return self.UI
 
     def importFile(self):
-        self.openFolder()
-        print('import file: ', self.fileName)
         if self.fileName == '':
+            self.openFolder()
             self.setSystemMessage('No file path exist')
         else:
             self.setSystemMessage('import : ' + self.fileName + 'success')
@@ -81,6 +86,7 @@ class AFDT(App):
         self.fileName = ''
         self.code = ''
     def openFolder(self):
+        print(self.hasOpenFolder)
         if self.hasOpenFolder:
             self.UI.fileChooser.size_hint_x = None
             self.UI.fileChooser.width = 0
@@ -106,4 +112,5 @@ class AFDT(App):
                 print('analyze code')
 
 
-AFDT().run()
+A = AFDT()
+A.run()
