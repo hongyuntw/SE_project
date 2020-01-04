@@ -10,7 +10,7 @@
 	#UI reference
 	sysMessageLabel:sysMessageLabel
 	displayCode:displayCode
-	displayImage:displayImage
+	#displayImage:displayImage
 	orientation: 'vertical'
 	
 	# component
@@ -22,9 +22,17 @@
 		DisplayCode:
 			id:displayCode
 		DisplayImage:
-			id:displayImage	
+		#DisplayImage:
+		#	id:displayImage
 	SysMessage:
 		id:sysMessageLabel
+
+<DisplayImage>:
+	size_hint_x: 0.4
+    Image:
+        source: 'exampleflow.png'
+        allow_stretch: True
+        keep_ratio: True
 		
 <ButtonList>:
 	orientation: 'vertical'
@@ -40,10 +48,7 @@
 	Button:
 		text: 'Save Image'
 	
-<DisplayImage>
-	size_hint_x: 0.4	
-	Image:
-		source:'exampleflow.png'
+
 	
 <DisplayCode>
 	text: ''
