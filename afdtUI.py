@@ -51,14 +51,6 @@ class SysMessage(Label):
     pass
 
 
-class Filechooser(BoxLayout):
-
-    def select(self, *args):
-        try:
-            App.get_running_app().fileName = args[1][0]
-        except:
-            pass
-
 class AFDT(App):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
@@ -80,9 +72,16 @@ class AFDT(App):
         self._popup.open()
 
     def load(self, path, filename):
-        with open(os.path.join(path, filename[0])) as stream:
-            self.code = stream.read()
-            self.UI.displayCode.text = self.code
+        try:
+            with open(os.path.join(path, filename[0])) as stream:
+                self.code = stream.read()
+                self.UI.displayCode.text = self.code
+            self.setSystemMessage('import ' + filename[0] + ' success!')
+        except:
+            self.setSystemMessage('Error file type!')
+            pass
+
+
 
         self.dismiss_popup()
 
@@ -118,25 +117,12 @@ class AFDT(App):
         self.fileName = ''
         self.code = ''
 
-    def openFolder(self):
-        print(self.hasOpenFolder)
-        if self.hasOpenFolder:
-            self.UI.fileChooser.size_hint_x = None
-            self.UI.fileChooser.width = 0
-            self.hasOpenFolder = False
-            self.UI.displayCode.size_hint_x = 0.4
-        else:
-            self.UI.displayCode.size_hint_x = None
-            self.UI.displayCode.width = 0
-            self.UI.fileChooser.size_hint_x = 0.4
-            self.hasOpenFolder = True
-
     def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
         if len(modifiers) > 0 and modifiers[0] == 'ctrl':
             if text == 'o':  # Ctrl+a
                 print('open folder')
                 self.setSystemMessage('open folder')
-                self.openFolder()
+                self.show_load()
             elif text == 's':
                 self.setSystemMessage('save img')
                 print('save img')
@@ -146,10 +132,14 @@ class AFDT(App):
     
     def _on_file_drop(self, window, file_path):
         print(file_path.decode())
-        self.fileName = file_path.decode()
-        self.hasOpenFolder = True
-        self.importFile()
-
+        try:
+            with open(file_path.decode()) as stream:
+                self.code = stream.read()
+                self.UI.displayCode.text = self.code
+            self.setSystemMessage('import '+ file_path.decode() + ' success!')
+        except:
+            self.setSystemMessage('Error file type!')
+            pass
         return
 
 A = AFDT()
