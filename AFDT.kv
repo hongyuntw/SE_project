@@ -21,18 +21,17 @@
 		ButtonList:			
 		DisplayCode:
 			id:displayCode
-		DisplayImage:
-		#DisplayImage:
-		#	id:displayImage
+		BoxLayout:
+			size_hint_x: 0.4
+			DisplayImage:
 	SysMessage:
 		id:sysMessageLabel
 
 <DisplayImage>:
-	size_hint_x: 0.4
-    Image:
-        source: 'exampleflow.png'
-        allow_stretch: True
-        keep_ratio: True
+	Image:
+		source: 'exampleflow.png'
+		allow_stretch: True
+		keep_ratio: True
 		
 <ButtonList>:
 	orientation: 'vertical'
@@ -72,14 +71,7 @@
             pos: self.pos 
             size: self.size 				
 	
-<Filechooser>: 
-    size_hint_x: None
-	width: '0dp'
-	
-    # Creating the File list / icon view 	
-    FileChooserIconView:
-		size_hint_x: 0.4		
-        on_selection: root.select(*args) 
+ 
 
 
 <LoadDialog>:
