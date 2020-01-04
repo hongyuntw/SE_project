@@ -10,9 +10,8 @@
 	#UI reference
 	sysMessageLabel:sysMessageLabel
 	displayCode:displayCode
-	#displayImage:displayImage
 	orientation: 'vertical'
-	
+	uiImage:uiImage
 	# component
 	BoxLayout:
 		orientation: 'horizontal'
@@ -23,9 +22,16 @@
 			id:displayCode
 		BoxLayout:
 			size_hint_x: 0.4
-			DisplayImage:
+			UIImage:
+				id:uiImage
 	SysMessage:
 		id:sysMessageLabel
+
+<UIImage>:
+	Image:
+		source: 'exampleflow.png'
+
+
 
 <DisplayImage>:
 	Image:
@@ -47,8 +53,14 @@
 	Button:
 		text: 'Save Image'
 		on_release:root.saveFile()
-	
+	Button:
+		text: 'view Image'
+		on_release:root.viewImage()
 
+<floatImage>
+	BoxLayout:
+		pos: root.pos
+		DisplayImage:
 	
 <DisplayCode>
 	text: ''

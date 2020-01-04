@@ -14,16 +14,16 @@ from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.scatter import Scatter
 from kivy.core.window import Window
 from kivy.graphics.transformation import Matrix
-
-
 from PIL import Image
 
 import os
 
 
-
 class UI(BoxLayout):
 
+    pass
+
+class UIImage(BoxLayout):
     pass
 
 class DisplayImage(ScatterLayout):
@@ -32,6 +32,7 @@ class DisplayImage(ScatterLayout):
     scale_lock_right = False
     scale_lock_top = False
     scale_lock_bottom = False
+
     def on_touch_up(self, touch):
         self.move_lock = False
         self.scale_lock_left = False
@@ -179,7 +180,8 @@ class ButtonList(BoxLayout):
 
     def saveFile(self):
         App.get_running_app().saveFile()
-
+    def viewImage(self):
+        App.get_running_app().viewImage()
     pass
 
 
@@ -192,9 +194,9 @@ class SaveDialog(FloatLayout):
     save = ObjectProperty(None)
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
-#
-# class DisplayImage(AnchorLayout):
-#     pass
+
+class floatImage(FloatLayout):
+    pass
 
 class DisplayCode(ScrollView):
 
@@ -222,6 +224,12 @@ class AFDT(App):
         content = SaveDialog(save=self.save, cancel=self.dismiss_popup)
         self._popup = Popup(title="Save file", content=content,
                             size_hint=(0.9, 0.9))
+        self._popup.open()
+
+    def viewImage(self):
+        content = floatImage()
+        self._popup = Popup(title="Float chart view", content=content,
+                            size_hint=(0.4, 1),auto_dismiss=True)
         self._popup.open()
 
     def load(self, path, filename):
@@ -298,6 +306,8 @@ class AFDT(App):
             self.setSystemMessage('Error file type!')
             pass
         return
+
+
 
 A = AFDT()
 A.run()
