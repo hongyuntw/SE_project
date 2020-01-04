@@ -15,6 +15,9 @@ from kivy.uix.scatter import Scatter
 from kivy.core.window import Window
 from kivy.graphics.transformation import Matrix
 
+=======
+from PIL import Image
+>>>>>>> 78f40ffab1a732ebc56903db572d465a4a0e1fbb
 import os
 
 
@@ -174,6 +177,9 @@ class ButtonList(BoxLayout):
     def clear(self):
         App.get_running_app().clear()
 
+    def saveFile(self):
+        App.get_running_app().saveFile()
+
     pass
 
 
@@ -202,7 +208,6 @@ class SysMessage(Label):
 class AFDT(App):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
-    text_input = ObjectProperty(None)
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -234,13 +239,14 @@ class AFDT(App):
         self.dismiss_popup()
 
     def save(self, path, filename):
-        with open(os.path.join(path, filename), 'w') as stream:
-            stream.write(self.text_input.text)
+        p = path + '/' + filename
+        print(p)
+        self.image.save(p)
 
         self.dismiss_popup()
 
     def __init__(self, **kwargs):
-
+        self.image = Image.open('./exampleflow.png')
         super(AFDT, self).__init__(**kwargs)
         self.code = ''
         self.sysMessage = 'Welcome to AFDT'
@@ -258,6 +264,9 @@ class AFDT(App):
 
     def importFile(self):
         self.show_load()
+
+    def saveFile(self):
+        self.show_save()
 
     def clear(self):
         self.setSystemMessage('Clear file success')
