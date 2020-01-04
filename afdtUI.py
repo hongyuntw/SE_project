@@ -15,9 +15,9 @@ from kivy.uix.scatter import Scatter
 from kivy.core.window import Window
 from kivy.graphics.transformation import Matrix
 
-=======
+
 from PIL import Image
->>>>>>> 78f40ffab1a732ebc56903db572d465a4a0e1fbb
+
 import os
 
 
