@@ -5,7 +5,7 @@ from kivy.uix.label import Label
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.uix.scrollview import ScrollView
-
+from kivy.properties import ObjectProperty
 class UI(BoxLayout):
 
     pass
@@ -54,6 +54,7 @@ class AFDT(App):
         self.fileName = ''
         self.hasOpenFolder = False
         Window.bind(on_key_down=self._on_keyboard_down)
+        Window.bind(on_dropfile=self._on_file_drop)
 
     #你想顯示啥用這個
     def setSystemMessage(self,text):
@@ -68,10 +69,15 @@ class AFDT(App):
         if self.fileName == '':
             self.setSystemMessage('No file path exist')
         else:
-            self.setSystemMessage('import : ' + self.fileName + 'success')
-            with open(self.fileName,'r') as f:
-                self.code = f.read()
-                self.UI.displayCode.text = self.code
+
+            try:
+                with open(self.fileName,'r') as f:
+                    self.code = f.read()
+                    self.UI.displayCode.text = self.code
+                self.setSystemMessage('import : ' + self.fileName + 'success')
+            except:
+                self.setSystemMessage('Error file type!')
+                pass
 
     def clear(self):
         self.setSystemMessage('Clear file success')
@@ -103,7 +109,14 @@ class AFDT(App):
             elif text == 'p':
                 self.setSystemMessage('analyze code')
                 print('analyze code')
+    # 抓檔案 import
+    def _on_file_drop(self, window, file_path):
+        print(file_path.decode())
+        self.fileName = file_path.decode()
+        self.hasOpenFolder = True
+        self.importFile()
 
+        return
 
 A = AFDT()
 A.run()
