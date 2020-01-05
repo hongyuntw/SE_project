@@ -11,7 +11,7 @@
 	sysMessageLabel:sysMessageLabel
 	displayCode:displayCode
 	orientation: 'vertical'
-	uiImage:uiImage
+	imageButton:imageButton
 	# component
 	BoxLayout:
 		orientation: 'horizontal'
@@ -22,23 +22,38 @@
 			id:displayCode
 		BoxLayout:
 			size_hint_x: 0.4
-			UIImage:
-				id:uiImage
+			ImageButton:
+				id:imageButton
 	SysMessage:
 		id:sysMessageLabel
 
-<UIImage>:
-	Image:
-		source: 'exampleflow.png'
-
-
+<ImageButton>:
+	source: 'exampleflow.png'
+	on_release: root.viewImage()
 
 <DisplayImage>:
 	Image:
 		source: 'exampleflow.png'
 		allow_stretch: True
 		keep_ratio: True
-		
+	
+<userHelpDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "OK"
+                on_release: root.ok()
+
+
+
+	
 <ButtonList>:
 	orientation: 'vertical'
 	size_hint_x: 0.2		
@@ -54,8 +69,13 @@
 		text: 'Save Image'
 		on_release:root.saveFile()
 	Button:
-		text: 'view Image'
-		on_release:root.viewImage()
+        text: 'User Prenfernce'
+        on_release:root.setting()
+	Button:
+        text: 'user help'
+        on_release:root.userhelp()
+		
+		
 
 <floatImage>
 	BoxLayout:
@@ -65,10 +85,13 @@
 <DisplayCode>
 	text: ''
 	size_hint_x: 0.4	
-	
+	font_size:20
 	Label:
+        id:displayCodeLabel
+        font_size:root.font_size
 		text: root.text
 		text_size: root.width, None
+
 		size_hint_y: None
 		height: self.texture_size[1]
 		
@@ -131,3 +154,37 @@
             Button:
                 text: "Save"
                 on_release: root.save(filechooser.path, text_input.text)
+
+<settingDialog>:
+	textExample:textExample
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+		Label:
+			size_hint_y: 0.5
+			text: "PreView"
+			font_size: fontSizeValue.value
+			id:textExample
+        Slider:
+			size_hint_y: 0.2
+			id: fontSizeValue
+			min: 1
+			max: 100
+			value: 20.0
+			step: 1
+			orientation: 'horizontal'
+			on_touch_move: textExample.font_size = fontSizeValue.value
+		Label:
+			size_hint_y: 0.2
+		    text: str(fontSizeValue.value)
+		BoxLayout:
+            size_hint_y: None
+            height: 30
+			Button:
+                text: "Cancel"
+                on_release: root.cancel()
+            Button:
+                text: "OK"
+                on_release: root.ok(str(fontSizeValue.value))
+			

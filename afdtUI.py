@@ -1,11 +1,6 @@
-from kivy.uix.button import Button
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.label import Label
-from kivy.app import App
 from kivy.uix.popup import Popup
-from kivy.core.window import Window
 from kivy.uix.scrollview import ScrollView
 from kivy.properties import ObjectProperty
 from kivy.app import App
@@ -14,17 +9,22 @@ from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.scatter import Scatter
 from kivy.core.window import Window
 from kivy.graphics.transformation import Matrix
+from kivy.uix.image import Image as uiImage
 from PIL import Image
-
+from kivy.uix.behaviors import ButtonBehavior
 import os
+
+
+class ImageButton(ButtonBehavior, uiImage):
+    def viewImage(self):
+        App.get_running_app().viewImage()
+    pass
 
 
 class UI(BoxLayout):
 
     pass
 
-class UIImage(BoxLayout):
-    pass
 
 class DisplayImage(ScatterLayout):
     move_lock = False
@@ -180,8 +180,26 @@ class ButtonList(BoxLayout):
 
     def saveFile(self):
         App.get_running_app().saveFile()
-    def viewImage(self):
-        App.get_running_app().viewImage()
+	
+    def userhelp(self):
+        App.get_running_app().show_help()
+
+    def setting(self):
+        App.get_running_app().show_setting()
+
+    pass
+
+class settingDialog(FloatLayout):
+
+
+    ok = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+    pass
+
+class userHelpDialog(FloatLayout):
+
+    ok = ObjectProperty(None)
+
     pass
 
 
@@ -196,6 +214,7 @@ class SaveDialog(FloatLayout):
     cancel = ObjectProperty(None)
 
 class floatImage(FloatLayout):
+
     pass
 
 class DisplayCode(ScrollView):
@@ -211,8 +230,39 @@ class AFDT(App):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
 
+    def __init__(self, **kwargs):
+        super(AFDT, self).__init__(**kwargs)
+        self.image = Image.open('./exampleflow.png')
+        self.code = ''
+        self.sysMessage = 'Welcome to AFDT'
+        self.fileName = ''
+        self.hasOpenFolder = False
+        Window.bind(on_key_down=self._on_keyboard_down)
+        Window.bind(on_dropfile=self._on_file_drop)
+
+    # POP UP  function
+    def show_help(self):
+        content = userHelpDialog(ok=self.dismiss_popup)
+        self._popup = Popup(title="help", content=content,
+                            size_hint=(0.9, 0.9))
+        self._popup.open()
+        
+    def show_setting(self):
+        content = settingDialog(ok=self.set_text_size,cancel=self.dismiss_popup)
+        self._popup = Popup(title="User Preferences", content=content,
+                            size_hint=(0.9, 0.9))
+        self._popup.open()
+
+
+    def set_text_size(self, text_size):
+        self.UI.displayCode.font_size = text_size
+        print('txt size set to '+ text_size)
+        self.dismiss_popup()
+        pass
+
     def dismiss_popup(self):
         self._popup.dismiss()
+
 
     def show_load(self):
         content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
@@ -232,6 +282,8 @@ class AFDT(App):
                             size_hint=(0.4, 1),auto_dismiss=True)
         self._popup.open()
 
+    # laod & save
+
     def load(self, path, filename):
         try:
             with open(os.path.join(path, filename[0])) as stream:
@@ -242,8 +294,6 @@ class AFDT(App):
             self.setSystemMessage('Error file type!')
             pass
 
-
-
         self.dismiss_popup()
 
     def save(self, path, filename):
@@ -253,28 +303,32 @@ class AFDT(App):
 
         self.dismiss_popup()
 
-    def __init__(self, **kwargs):
-        self.image = Image.open('./exampleflow.png')
-        super(AFDT, self).__init__(**kwargs)
-        self.code = ''
-        self.sysMessage = 'Welcome to AFDT'
-        self.fileName = ''
-        self.hasOpenFolder = False
-        Window.bind(on_key_down=self._on_keyboard_down)
-        Window.bind(on_dropfile=self._on_file_drop)
+    def _on_file_drop(self, window, file_path):
+        print(file_path.decode())
+        try:
+            with open(file_path.decode()) as stream:
+                self.code = stream.read()
+                self.UI.displayCode.text = self.code
+            self.setSystemMessage('import ' + file_path.decode() + ' success!')
+        except:
+            self.setSystemMessage('Error file type!')
+            pass
+        return
+
+    def saveFile(self):
+        self.show_save()
 
     def setSystemMessage(self,text):
         self.UI.sysMessageLabel.text = text
 
-    def build(self):
-        self.UI = UI()
-        return self.UI
+
 
     def importFile(self):
         self.show_load()
 
-    def saveFile(self):
-        self.show_save()
+
+
+
 
     def clear(self):
         self.setSystemMessage('Clear file success')
@@ -295,19 +349,11 @@ class AFDT(App):
                 self.setSystemMessage('analyze code')
                 print('analyze code')
 
-    def _on_file_drop(self, window, file_path):
-        print(file_path.decode())
-        try:
-            with open(file_path.decode()) as stream:
-                self.code = stream.read()
-                self.UI.displayCode.text = self.code
-            self.setSystemMessage('import '+ file_path.decode() + ' success!')
-        except:
-            self.setSystemMessage('Error file type!')
-            pass
-        return
 
 
+    def build(self):
+        self.UI = UI()
+        return self.UI
 
 A = AFDT()
 A.run()
