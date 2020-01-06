@@ -177,7 +177,6 @@ class ButtonList(BoxLayout):
 
     def clear(self):
         App.get_running_app().clear()
-
     def saveFile(self):
         App.get_running_app().saveFile()
 	
@@ -190,8 +189,6 @@ class ButtonList(BoxLayout):
     pass
 
 class settingDialog(FloatLayout):
-
-
     ok = ObjectProperty(None)
     cancel = ObjectProperty(None)
     pass
@@ -225,10 +222,14 @@ class SysMessage(Label):
 
     pass
 
+class UserHintMessage(Label):
+    pass
 
 class AFDT(App):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
+    codeFontSize = ObjectProperty(20)
+    uiFontSize = ObjectProperty(20)
 
     def __init__(self, **kwargs):
         super(AFDT, self).__init__(**kwargs)
@@ -237,6 +238,7 @@ class AFDT(App):
         self.sysMessage = 'Welcome to AFDT'
         self.fileName = ''
         self.hasOpenFolder = False
+
         Window.bind(on_key_down=self._on_keyboard_down)
         Window.bind(on_dropfile=self._on_file_drop)
 
@@ -299,7 +301,7 @@ class AFDT(App):
     def save(self, path, filename):
         p = path + '/' + filename
         print(p)
-        self.image.save(p)
+        self.image.save(p,'png')
 
         self.dismiss_popup()
 
@@ -321,7 +323,8 @@ class AFDT(App):
     def setSystemMessage(self,text):
         self.UI.sysMessageLabel.text = text
 
-
+    def setUserHintMessage(self,text):
+        self.UI.userHintMessageLabel.text = text
 
     def importFile(self):
         self.show_load()
