@@ -288,7 +288,7 @@ class AFDT(App):
 
     def load(self, path, filename):
         try:
-            with open(os.path.join(path, filename[0])) as stream:
+            with open(os.path.join(path, filename[0]), encoding= 'utf-8') as stream:
                 self.code = stream.read()
                 self.UI.displayCode.text = self.code
             self.setSystemMessage('import ' + filename[0] + ' success!')
