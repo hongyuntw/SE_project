@@ -17,10 +17,11 @@
 	# show user hint
 	UserHintMessage:
 		id:userHintMessageLabel
-		halign: 'left'
+		halign: 'center'
 		valign: 'middle'
 		size_hint_y:0.1
-		
+		text_size: root.width, None
+		font_size:app.uiFontSize
 	# component	
 	BoxLayout:
 		orientation: 'horizontal'
@@ -71,25 +72,37 @@
 	orientation: 'vertical'
 	size_hint_x: 0.2		
 	Button:
+		halign: 'center'
+		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Import file'
 		on_release:root.importFile()
 	Button:
+		halign: 'center'
+		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Draw Diagram'	
 	Button:
+		halign: 'center'
+		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Clear'	
 		on_release:root.clear()
 	Button:
+		halign: 'center'
+		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Save Image'
 		on_release:root.saveFile()
 	Button:
+		halign: 'center'
+		text_size: root.width, None
         font_size:app.uiFontSize
 		text: 'User Prenfernce'
         on_release:root.setting()
 	Button:
+		halign: 'center'
+		text_size: root.width, None
         font_size:app.uiFontSize
 		text: 'user help'
         on_release:root.userhelp()
@@ -103,7 +116,7 @@
 	
 <DisplayCode>
 	text: ''
-	font_size:20
+	font_size: app.codeFontSize
 	Label:
         id:displayCodeLabel
         font_size:root.font_size
@@ -182,49 +195,63 @@
                 on_release: root.save(filechooser.path, text_input.text)
 
 <settingDialog>:
-	textExample:textExample
+	#textExample:textExample
     BoxLayout:
         size: root.size
         pos: root.pos
         orientation: "vertical"
-		Label:
+		padding:30
+		#BoxLayout:
+		#	Label:
+		#		width: root.width*0.5
+		#		text: "PreView"
+		#		font_size: app.codeFontSize
+		#		id:textExample			
+        BoxLayout:
 			size_hint_y: 0.5
-			text: "PreView"
-			font_size: app.codeFontSize
-			id:textExample
-        Slider:
-			size_hint_y: 0.2
-			id: uifontSizeValue
-			min: 1
-			max: 100
-			value: app.uiFontSize
-			step: 1
 			orientation: 'horizontal'
-			on_touch_move:
-				app.uiFontSize = uifontSizeValue.value
-				#textExample.font_size = app.uiFontSize
-		Slider:
-			size_hint_y: 0.2
-			id: codefontSizeValue
-			min: 1
-			max: 100
-			value: app.codeFontSize
-			step: 1
-			orientation: 'horizontal'
-			on_touch_move:
-				app.codeFontSize = codefontSizeValue.value
-				textExample.font_size = app.codeFontSize			
-		
-		Label:
-			size_hint_y: 0.2
-		    text: str(codefontSizeValue.value)
+			Label:
+				
+				size_hint_x:0.2
+				text:"UI font size"
+			Slider:
+				
+				id: uifontSizeValue
+				min: 1
+				max: 100
+				value: app.uiFontSize
+				step: 1
+				orientation: 'horizontal'
+				on_touch_move:
+					app.uiFontSize = uifontSizeValue.value
 		BoxLayout:
-            size_hint_y: None
-            height: 30
-			Button:
-                text: "Cancel"
-                on_release: root.cancel()
-            Button:
-                text: "OK"
-                on_release: root.ok(str(app.codeFontSize))
+			size_hint_y: 0.5
+			orientation: 'horizontal'
+			Label:
+				size_hint_x:0.2
+				
+				text:"Code font size"
+			Slider:
+				
+				id: codefontSizeValue
+				min: 1
+				max: 100
+				value: app.codeFontSize
+				step: 1
+				orientation: 'horizontal'
+				on_touch_move:
+					app.codeFontSize = codefontSizeValue.value	
+		#BoxLayout:
+		#	size_hint_y: 0.5
+		#	height: 30
+		#	Button:
+		#		text: "Cancel"
+		#		on_release: root.cancel()
+		#	Button:
+		#		text: "OK"
+		#		on_release: root.ok(str(app.codeFontSize))			
+		#Label:
+		#	size_hint_y: 0.2
+		#   text: str(codefontSizeValue.value)
+		
 			

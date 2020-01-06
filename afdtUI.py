@@ -252,7 +252,7 @@ class AFDT(App):
     def show_setting(self):
         content = settingDialog(ok=self.set_text_size,cancel=self.dismiss_popup)
         self._popup = Popup(title="User Preferences", content=content,
-                            size_hint=(0.9, 0.9))
+                            size_hint=(0.8, 0.3))
         self._popup.open()
 
 
@@ -302,7 +302,6 @@ class AFDT(App):
         p = path + '/' + filename
         print(p)
         self.image.save(p,'png')
-
         self.dismiss_popup()
 
     def _on_file_drop(self, window, file_path):
@@ -329,10 +328,6 @@ class AFDT(App):
     def importFile(self):
         self.show_load()
 
-
-
-
-
     def clear(self):
         self.setSystemMessage('Clear file success')
         self.UI.displayCode.text = ''
@@ -351,8 +346,6 @@ class AFDT(App):
             elif text == 'p':
                 self.setSystemMessage('analyze code')
                 print('analyze code')
-
-
 
     def build(self):
         self.UI = UI()
