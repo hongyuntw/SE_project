@@ -286,9 +286,11 @@ class UserHintMessage(Label):
 class AFDT(App):
     loadfile = ObjectProperty(None)
     savefile = ObjectProperty(None)
+    # ui font size
     codeFontSize = ObjectProperty(20)
     uiFontSize = ObjectProperty(20)
-
+    # source path of diagram
+    getDiagram = ObjectProperty('./default.png')
     def __init__(self, **kwargs):
         super(AFDT, self).__init__(**kwargs)
         self.image = Image.open('./exampleflow.png')
@@ -345,7 +347,7 @@ class AFDT(App):
 
     def load(self, path, filename):
         try:
-            with open(os.path.join(path, filename[0]), encoding= 'utf-8') as stream:
+            with open(os.path.join(path, filename[0])) as stream:
                 self.code = stream.read()
                 self.UI.displayCode.text = self.code
             self.setSystemMessage('import ' + filename[0] + ' success!')
@@ -411,6 +413,7 @@ class AFDT(App):
         # self.code
         try:
             analysis_tool()
+
         except :
             self.setSystemMessage('Cannot Parse Source. Please Check You Source Code Or Try Other Program.')
 
