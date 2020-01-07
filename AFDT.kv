@@ -88,7 +88,8 @@
 		halign: 'center'
 		text_size: root.width, None
 		font_size:app.uiFontSize
-		text: 'Draw Diagram'	
+		text: 'Draw Diagram'
+		on_release: root.draw()
 	Button:
 		font_name: './LucidaGrande'
 		id:clear_btn
@@ -226,7 +227,7 @@
 		#		font_size: app.codeFontSize
 		#		id:textExample			
         BoxLayout:
-			size_hint_y: 0.5
+			size_hint_y: 0.55
 			orientation: 'horizontal'
 			Label:
 				
@@ -243,7 +244,9 @@
 				on_touch_move:
 					app.uiFontSize = uifontSizeValue.value
 		BoxLayout:
-			size_hint_y: 0.5
+			size_hint_y: 0.1
+		BoxLayout:
+			size_hint_y: 0.55
 			orientation: 'horizontal'
 			Label:
 				size_hint_x:0.2

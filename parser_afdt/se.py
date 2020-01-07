@@ -9,11 +9,8 @@ import ply.yacc as yacc
 from graphviz import Digraph
 
 
-class TailNode:
-    def __init__(self, name, label=''):
-        self.nodeName = name
-        self.outlabel = label
-
+# Build the graph
+g = Digraph()
 
 delimiters_dict = {
     '(': 'LP',
@@ -40,9 +37,9 @@ keyword_dict = {
 }
 op_dict = {
 }
+
 tokens = ['CONTENT'] + list(op_dict.values()) + \
     list(keyword_dict.values()) + list(delimiters_dict.values())
-
 
 def t_CONTENT(t):
     r'[a-zA-Z_><=&^%!#$*0-9+\[\]\?\--\/,]+'
@@ -90,12 +87,7 @@ def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
 
-
-# Build the lexer
-lexer = lex.lex()
-
 # Test it out
-
 data = '''
 while(1){
     a--;
@@ -110,10 +102,7 @@ while(1){
     e--;
 }
 '''
-
-
-lexer.input(data)
-# global 
+# global
 casedict = {}
 myowndict = {}
 need_add_edge = {}
@@ -132,13 +121,11 @@ skipbreaknodes = []
 previous_node = ''
 skipbreaknodes = []
 # Tokenize
-while True:
-    tok = lexer.token()
-    if not tok:
-        break      # No more input
-    print(tok)
-
-g = Digraph('G', filename='cluster.gv')
+# while True:
+#     tok = lexer.token()
+#     if not tok:
+#         break      # No more input
+#     print(tok)
 
 def GetInitData():
     return {'headNodes': [],
@@ -196,7 +183,6 @@ def p_stmt(p):
     else:
         p[0]['headNodes'] = p[1]['headNodes']
         p[0]['tailNodes'] = p[1]['tailNodes']
-
 
 
 def p_switch_stmt(p):
@@ -267,10 +253,6 @@ def p_switch_stmt(p):
         g.edge(p[3]['headNodes'][0],p[8]['headNodes'][0])
         alledge.append((p[3]['headNodes'][0],p[8]['headNodes'][0],''))
 
-    
-        
-
-    
 
 def p_case_stmt(p):
     '''case_stmt : CASE bool_expr COLON stmts
@@ -498,76 +480,81 @@ def p_error(p):
     print('error')
 
 
+# Build the lexer
+lexer = lex.lex()
 # Build the parser
 parser = yacc.yacc()
 
-parser.parse(data, lexer=lexer)
-# create a new graph without empty
-newg = Digraph('G', filename='newcluster.gv')
-emptylist = []
-for k,v in allnode.items():
-    if v[0] != 'empty':
-        newg.node(k, v[0].replace(';',''), shape=v[1])
-    else:
-        emptylist.append(k)
 
-# 處理empty node
-for emptynode in emptylist:
-    origin_empty_node = emptynode
-    # tp = tuple
+def analysis_tool(code=data):
+    global parser
+    global lexer
+    global g
+    g = Digraph('G')
+    # create a new graph without empty
+    newg = Digraph('G')
+    parser.parse(code, lexer=lexer)
+
+    emptylist = []
+    for k, v in allnode.items():
+        if v[0] != 'empty':
+            newg.node(k, v[0].replace(';', ''), shape=v[1])
+        else:
+            emptylist.append(k)
+
+    # 處理empty node
+    for emptynode in emptylist:
+        origin_empty_node = emptynode
+        # tp = tuple
+        for tp in alledge:
+            startnode = tp[0]
+            endnode = tp[1]
+            label = tp[2]
+            # 有連到empty的
+            # a -> empty
+            if endnode == emptynode and not (startnode in emptylist):
+                # a->empty->b
+                # a->empty->empty->b
+                # 把a->b
+                while (1):
+                    flag = False
+                    count = 0
+                    # tp = tuple
+                    for tp2 in alledge:
+                        startnode2 = tp2[0]
+                        endnode2 = tp2[1]
+                        label2 = tp2[2]
+                        # empty -> empty 不該處理
+                        if startnode2 == emptynode and (not endnode2 in emptylist):
+                            # check接下來
+                            newg.edge(startnode, endnode2, label=label)
+                            flag = True
+                            count += 1
+                            break
+                        # empty->empty->empty case
+                        elif startnode2 == emptynode and (endnode2 in emptylist):
+                            emptynode = endnode2
+                            count += 1
+                            break
+                    # nothing change 都好像沒有變
+                    if flag or count == 0:
+                        emptynode = origin_empty_node
+                        break
+
+    # for tp in alledge:
+    #     startnode = tp[0]
+    #     endnode = tp[1]
+    #     label = tp[2]
+    #     # *** -> break -> xxx
+    #     if allnode[endnode][0] == 'break;':
+
+    # 把之中沒有empty的edge連回去
     for tp in alledge:
         startnode = tp[0]
-        endnode  = tp[1]
+        endnode = tp[1]
         label = tp[2]
-        # 有連到empty的
-        # a -> empty
-        if endnode == emptynode and not (startnode in emptylist):
-            # a->empty->b
-            # a->empty->empty->b
-            # 把a->b
-            while (1):
-                flag = False
-                count = 0
-                # tp = tuple
-                for tp2 in alledge:
-                    startnode2 = tp2[0]
-                    endnode2  = tp2[1]
-                    label2 = tp2[2]
-                    # empty -> empty 不該處理
-                    if startnode2 == emptynode and (not endnode2 in emptylist):
-                        # check接下來
-                        newg.edge(startnode, endnode2, label=label)
-                        flag = True
-                        count += 1
-                        break
-                    # empty->empty->empty case
-                    elif startnode2 == emptynode and (endnode2 in emptylist):
-                        emptynode = endnode2
-                        count += 1
-                        break
-                # nothing change 都好像沒有變
-                if flag or count == 0:
-                    emptynode = origin_empty_node
-                    break
-
-
-# for tp in alledge:
-#     startnode = tp[0]
-#     endnode = tp[1]
-#     label = tp[2]
-#     # *** -> break -> xxx
-#     if allnode[endnode][0] == 'break;':
-        
-
-
-# 把之中沒有empty的edge連回去
-for tp in alledge:
-    startnode = tp[0]
-    endnode  = tp[1]
-    label = tp[2] 
-    if not (startnode in emptylist or endnode in emptylist):
-        newg.edge(startnode,endnode,label=label)
-
-g.view()
-newg.view()
-
+        if not (startnode in emptylist or endnode in emptylist):
+            newg.edge(startnode, endnode, label=label)
+    newg.render('out.gv', format='png')
+    # g.view()
+    # newg.view()

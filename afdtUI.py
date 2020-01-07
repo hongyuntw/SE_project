@@ -15,6 +15,7 @@ from PIL import Image
 from kivy.uix.behaviors import ButtonBehavior
 import os
 from kivy.core.window import Window
+from parser_afdt.se import analysis_tool
 
 Window.minimum_height = 600
 Window.minimum_width = 750
@@ -222,6 +223,11 @@ class ButtonList(BoxLayout):
             self.ids.userhelp_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
 
+    def draw(self):
+        print('d')
+        App.get_running_app().draw()
+
+
     def openFolder(self):
         App.get_running_app().openFolder()
 
@@ -400,6 +406,14 @@ class AFDT(App):
             elif text == 'p':
                 self.setSystemMessage('analyze code')
                 print('analyze code')
+
+    def draw(self):
+        # self.code
+        try:
+            analysis_tool()
+        except :
+            self.setSystemMessage('Cannot Parse Source. Please Check You Source Code Or Try Other Program.')
+
 
     def build(self):
         self.UI = UI()
