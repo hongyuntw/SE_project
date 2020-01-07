@@ -33,8 +33,8 @@
 			DisplayCode:
 				size_hint_x: 0.5
 				id:displayCode
-			BoxLayout:
-				orientation: 'vertical'
+			ScrollView:
+				#orientation: 'vertical'
 				size_hint_x: 0.3
 				ImageButton:			
 					id:imageButton
@@ -46,6 +46,7 @@
 	allow_stretch: True
     keep_ratio: False
 	size:root.size
+    size:root.size
 	source: app.getDiagram
 	on_release: root.viewImage()
 

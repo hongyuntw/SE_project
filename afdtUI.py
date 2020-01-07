@@ -22,7 +22,8 @@ Window.minimum_width = 750
 
 class ImageButton(ButtonBehavior, uiImage):
     def viewImage(self):
-        App.get_running_app().viewImage()
+        if  App.get_running_app().getDiagram != '':
+            App.get_running_app().viewImage()
     pass
 
 class UI(BoxLayout):
@@ -170,7 +171,7 @@ class DisplayImage(ScatterLayout):
         return True
 
 class ButtonList(BoxLayout):
-    
+
     def __init__(self, **kwargs):
         Window.bind(mouse_pos=self._on_mouse_pos)
         super(ButtonList, self).__init__(**kwargs)
@@ -293,7 +294,7 @@ class AFDT(App):
     getDiagram = ObjectProperty('./default.png')
     def __init__(self, **kwargs):
         super(AFDT, self).__init__(**kwargs)
-        self.image = Image.open('./exampleflow.png')
+        self.image = Image.open(self.getDiagram)
         self.code = ''
         self.sysMessage = 'Welcome to AFDT'
         self.fileName = ''
@@ -340,7 +341,7 @@ class AFDT(App):
     def viewImage(self):
         content = floatImage()
         self._popup = Popup(title="Float chart view", content=content,
-                            size_hint=(0.4, 1),auto_dismiss=True)
+                            size_hint=(1, 0.8),auto_dismiss=True)
         self._popup.open()
 
     # laod & save
@@ -358,10 +359,14 @@ class AFDT(App):
         self.dismiss_popup()
 
     def save(self, path, filename):
-        p = path + '/' + filename
-        print(p)
-        self.image.save(p,'png')
-        self.dismiss_popup()
+        try:
+            p = path + '/' + filename + '.png'
+            print(p)
+            self.image.save(p,'png')
+            self.dismiss_popup()
+            self.setSystemMessage('Save image success')
+        except:
+            self.setSystemMessage('Save image error!Check if you have generated the diagram')
 
     def _on_file_drop(self, window, file_path):
         print(file_path.decode())
@@ -392,6 +397,8 @@ class AFDT(App):
         self.UI.displayCode.text = ''
         self.fileName = ''
         self.code = ''
+        self.image = ''
+        self.getDiagram = ''
     def _on_mouse_pos(self,w,pos):
 
         pass
@@ -413,7 +420,9 @@ class AFDT(App):
         # self.code
         try:
             analysis_tool()
-
+            self.getDiagram = './out.gv.png'
+            self.image = Image.open(self.getDiagram)
+            self.setSystemMessage('Generate diagram success')
         except :
             self.setSystemMessage('Cannot Parse Source. Please Check You Source Code Or Try Other Program.')
 
