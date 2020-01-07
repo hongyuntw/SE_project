@@ -72,8 +72,10 @@
 
 	
 <ButtonList>:
+	
 	orientation: 'vertical'	
 	Button:
+		font_name: './LucidaGrande'
 		id:importfile_btn
 		halign: 'center'
 		text_size: root.width, None
@@ -81,12 +83,14 @@
 		text: 'Import file'
 		on_release:root.importFile()
 	Button:
+		font_name: './LucidaGrande'
 		id:drawdiagram_btn
 		halign: 'center'
 		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Draw Diagram'	
 	Button:
+		font_name: './LucidaGrande'
 		id:clear_btn
 		halign: 'center'
 		text_size: root.width, None
@@ -94,6 +98,7 @@
 		text: 'Clear'	
 		on_release:root.clear()
 	Button:
+		font_name: './LucidaGrande'
 		id:saveimage_btn
 		halign: 'center'
 		text_size: root.width, None
@@ -101,6 +106,7 @@
 		text: 'Save Image'
 		on_release:root.saveFile()
 	Button:
+		font_name: './LucidaGrande'
 		id:userpreference_btn
 		halign: 'center'
 		text_size: root.width, None
@@ -108,6 +114,7 @@
 		text: 'User Prefernce'
         on_release:root.setting()
 	Button:
+		font_name: './LucidaGrande'
 		id:userhelp_btn
 		halign: 'center'
 		text_size: root.width, None
@@ -135,7 +142,8 @@
 		size_hint_y: None
 		height: self.texture_size[1]
 
-<UserHintMessage>:		
+<UserHintMessage>:
+	font_name: './LucidaGrande'
 	text: 'User hint'
 	canvas.before: 
         Color: 
@@ -145,6 +153,7 @@
             size: self.size		
 
 <SysMessage>:
+	font_name: './LucidaGrande'
 	font_size:app.uiFontSize
 	text: 'Welcome to AFDT'
 	canvas.before: 
