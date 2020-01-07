@@ -14,33 +14,37 @@
 	orientation: 'vertical'
 	imageButton:imageButton
 	
-	# show user hint
-	UserHintMessage:
-		id:userHintMessageLabel
-		halign: 'center'
-		valign: 'middle'
-		size_hint_y:0.1
-		text_size: root.width, None
-		font_size:app.uiFontSize
-	# component	
 	BoxLayout:
-		orientation: 'horizontal'
-		size_hint_y: 0.9
-		spacing: 2		
-		ButtonList:			
-		DisplayCode:
-			size_hint_x: 0.4
-			id:displayCode
+		orientation: 'vertical'
+		# show user hint
+		UserHintMessage:
+			id:userHintMessageLabel
+			halign: 'center'
+			valign: 'middle'
+			size_hint_y:0.1
+			text_size: root.width, None
+			font_size:app.uiFontSize
+		# component	
 		BoxLayout:
-			size_hint_x: 0.4
-			ImageButton:
-				id:imageButton
-				
-	SysMessage:
-		size_hint_y: 0.1
-		id:sysMessageLabel
+			orientation: 'horizontal'
+			size_hint_y: 0.9	
+			ButtonList:
+				size_hint_x: 0.2
+			DisplayCode:
+				size_hint_x: 0.5
+				id:displayCode
+			BoxLayout:
+				orientation: 'vertical'
+				size_hint_x: 0.3
+				ImageButton:			
+					id:imageButton
+		SysMessage:
+			size_hint_y: 0.1
+			id:sysMessageLabel
 
-<ImageButton>:
+<ImageButton>:	
+	allow_stretch: True
+    keep_ratio: False
 	size:root.size
 	source: 'exampleflow.png'
 	on_release: root.viewImage()
@@ -68,8 +72,7 @@
 
 	
 <ButtonList>:
-	orientation: 'vertical'
-	size_hint_x: 0.2		
+	orientation: 'vertical'	
 	Button:
 		id:importfile_btn
 		halign: 'center'
@@ -136,7 +139,7 @@
 	text: 'User hint'
 	canvas.before: 
         Color: 
-			rgb: .5, .5, .4
+			rgb: 60/255, 60/255, 60/255
         Rectangle: 
             pos: self.pos 
             size: self.size		
@@ -146,7 +149,7 @@
 	text: 'Welcome to AFDT'
 	canvas.before: 
         Color: 
-			rgb: .5, .5, .4
+			rgb: 0, 122/255, 204/255
         Rectangle: 
             pos: self.pos 
             size: self.size 				
@@ -223,8 +226,8 @@
 			Slider:
 				
 				id: uifontSizeValue
-				min: 1
-				max: 100
+				min: 10
+				max: 50
 				value: app.uiFontSize
 				step: 1
 				orientation: 'horizontal'
@@ -240,8 +243,8 @@
 			Slider:
 				
 				id: codefontSizeValue
-				min: 1
-				max: 100
+				min: 10
+				max: 50
 				value: app.codeFontSize
 				step: 1
 				orientation: 'horizontal'

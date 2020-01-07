@@ -14,6 +14,10 @@ from kivy.uix.image import Image as uiImage
 from PIL import Image
 from kivy.uix.behaviors import ButtonBehavior
 import os
+from kivy.core.window import Window
+
+Window.minimum_height = 600
+Window.minimum_width = 750
 
 class ImageButton(ButtonBehavior, uiImage):
     def viewImage(self):
@@ -172,7 +176,7 @@ class ButtonList(BoxLayout):
 
     def _on_mouse_pos(self,w,p):
         if self.collide_point(p[0],p[1]) == False:
-            App.get_running_app().setUserHintMessage('hint')
+            App.get_running_app().setUserHintMessage('')
 
         if self.ids.importfile_btn.collide_point(p[0],p[1]):
             App.get_running_app().setUserHintMessage('press button to import file')
@@ -226,9 +230,10 @@ class ButtonList(BoxLayout):
 
     def clear(self):
         App.get_running_app().clear()
+        print(App.get_running_app().root.width,App.get_running_app().root.height)
     def saveFile(self):
         App.get_running_app().saveFile()
-	
+
     def userhelp(self):
         App.get_running_app().show_help()
 
