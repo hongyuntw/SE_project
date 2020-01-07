@@ -171,25 +171,51 @@ class ButtonList(BoxLayout):
         super(ButtonList, self).__init__(**kwargs)
 
     def _on_mouse_pos(self,w,p):
-        
+        if self.collide_point(p[0],p[1]) == False:
+            App.get_running_app().setUserHintMessage('hint')
+
         if self.ids.importfile_btn.collide_point(p[0],p[1]):
             App.get_running_app().setUserHintMessage('press button to import file')
+            self.ids.importfile_btn.background_color = (1.0, 0.0, 0.0, 1.0)
+
+        if self.ids.importfile_btn.collide_point(p[0],p[1]) == False:
+            self.ids.importfile_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
         if self.ids.drawdiagram_btn.collide_point(p[0],p[1]):
             App.get_running_app().setUserHintMessage('press button to draw diagram')
+            self.ids.drawdiagram_btn.background_color = (1.0, 0, 0, 1.0)
+
+        if self.ids.drawdiagram_btn.collide_point(p[0],p[1]) == False:
+            self.ids.drawdiagram_btn.background_color = (1.0, 1.0, 1.0, 1.0)
+
 
         if self.ids.saveimage_btn.collide_point(p[0],p[1]):
             App.get_running_app().setUserHintMessage('press button to save image')
+            self.ids.saveimage_btn.background_color = (1.0, 0, 0, 1.0)
+
+        if self.ids.saveimage_btn.collide_point(p[0],p[1]) == False:
+            self.ids.saveimage_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
         if self.ids.clear_btn.collide_point(p[0],p[1]):
             App.get_running_app().setUserHintMessage('press button to clear code')
+            self.ids.clear_btn.background_color = (1.0, 0, 0, 1.0)
+
+        if self.ids.clear_btn.collide_point(p[0],p[1]) == False:
+            self.ids.clear_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
         if self.ids.userpreference_btn.collide_point(p[0],p[1]):
             App.get_running_app().setUserHintMessage('press button to setting user preference')
+            self.ids.userpreference_btn.background_color = (1.0, 0, 0, 1.0)
+
+        if self.ids.userpreference_btn.collide_point(p[0],p[1]) == False:
+            self.ids.userpreference_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
         if self.ids.userhelp_btn.collide_point(p[0],p[1]):
             App.get_running_app().setUserHintMessage('press button to see user help')
+            self.ids.userhelp_btn.background_color = (1.0, 0, 0, 1.0)
 
+        if self.ids.userhelp_btn.collide_point(p[0],p[1]) == False:
+            self.ids.userhelp_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
 
     def openFolder(self):
