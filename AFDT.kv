@@ -66,41 +66,46 @@
                 on_release: root.ok()
 
 
-
 	
 <ButtonList>:
 	orientation: 'vertical'
 	size_hint_x: 0.2		
 	Button:
+		id:importfile_btn
 		halign: 'center'
 		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Import file'
 		on_release:root.importFile()
 	Button:
+		id:drawdiagram_btn
 		halign: 'center'
 		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Draw Diagram'	
 	Button:
+		id:clear_btn
 		halign: 'center'
 		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Clear'	
 		on_release:root.clear()
 	Button:
+		id:saveimage_btn
 		halign: 'center'
 		text_size: root.width, None
 		font_size:app.uiFontSize
 		text: 'Save Image'
 		on_release:root.saveFile()
 	Button:
+		id:userpreference_btn
 		halign: 'center'
 		text_size: root.width, None
         font_size:app.uiFontSize
-		text: 'User Prenfernce'
+		text: 'User Prefernce'
         on_release:root.setting()
 	Button:
+		id:userhelp_btn
 		halign: 'center'
 		text_size: root.width, None
         font_size:app.uiFontSize

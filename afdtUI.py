@@ -7,6 +7,7 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.scatter import Scatter
+from kivy.uix.button import Button
 from kivy.core.window import Window
 from kivy.graphics.transformation import Matrix
 from kivy.uix.image import Image as uiImage
@@ -14,17 +15,14 @@ from PIL import Image
 from kivy.uix.behaviors import ButtonBehavior
 import os
 
-
 class ImageButton(ButtonBehavior, uiImage):
     def viewImage(self):
         App.get_running_app().viewImage()
     pass
 
-
 class UI(BoxLayout):
 
     pass
-
 
 class DisplayImage(ScatterLayout):
     move_lock = False
@@ -166,8 +164,33 @@ class DisplayImage(ScatterLayout):
 
         return True
 
-
 class ButtonList(BoxLayout):
+    
+    def __init__(self, **kwargs):
+        Window.bind(mouse_pos=self._on_mouse_pos)
+        super(ButtonList, self).__init__(**kwargs)
+
+    def _on_mouse_pos(self,w,p):
+        
+        if self.ids.importfile_btn.collide_point(p[0],p[1]):
+            App.get_running_app().setUserHintMessage('press button to import file')
+
+        if self.ids.drawdiagram_btn.collide_point(p[0],p[1]):
+            App.get_running_app().setUserHintMessage('press button to draw diagram')
+
+        if self.ids.saveimage_btn.collide_point(p[0],p[1]):
+            App.get_running_app().setUserHintMessage('press button to save image')
+
+        if self.ids.clear_btn.collide_point(p[0],p[1]):
+            App.get_running_app().setUserHintMessage('press button to clear code')
+
+        if self.ids.userpreference_btn.collide_point(p[0],p[1]):
+            App.get_running_app().setUserHintMessage('press button to setting user preference')
+
+        if self.ids.userhelp_btn.collide_point(p[0],p[1]):
+            App.get_running_app().setUserHintMessage('press button to see user help')
+
+
 
     def openFolder(self):
         App.get_running_app().openFolder()
@@ -199,11 +222,9 @@ class userHelpDialog(FloatLayout):
 
     pass
 
-
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
-
 
 class SaveDialog(FloatLayout):
     save = ObjectProperty(None)
@@ -238,7 +259,6 @@ class AFDT(App):
         self.sysMessage = 'Welcome to AFDT'
         self.fileName = ''
         self.hasOpenFolder = False
-
         Window.bind(on_key_down=self._on_keyboard_down)
         Window.bind(on_dropfile=self._on_file_drop)
 
@@ -333,7 +353,10 @@ class AFDT(App):
         self.UI.displayCode.text = ''
         self.fileName = ''
         self.code = ''
+    def _on_mouse_pos(self,w,pos):
 
+        pass
+        #print (pos)
     def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
         if len(modifiers) > 0 and modifiers[0] == 'ctrl':
             if text == 'o':  # Ctrl+a
