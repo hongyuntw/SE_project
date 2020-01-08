@@ -16,35 +16,30 @@ data = '''
 bool adj[9][9]; // adjacency matrix
 int ref[9];     // 記錄圖上每一個點目前仍被多少條邊連到
  
-    for (int i=0; i<9; ++i){ref[i] = 0;} // 初始化為0
+    for (int i=0; i<9; ++i) ref[i] = 0; // 初始化為0
  
     // 累計圖上每一個點被幾條邊連到
-    for (int i=0; i<9; ++i){
-        for (int j=0; j<9; ++j){
-            if (adj[i][j]){
+    for (int i=0; i<9; ++i)
+        for (int j=0; j<9; ++j)
+            if (adj[i][j])
                 ref[j]++;
-                }
-                }
-                }
  
     // 開始找出一個合理的排列順序
     for (int i=0; i<9; ++i)
     {
         // 尋找沒有被任何邊連向的點
         int s = 0;
-        while (s < 9 && ref[s] != 0) {++s;}
+        while (s < 9 && ref[s] != 0) ++s;
  
-        if (s == 9) {break;}  // 找不到。表示目前殘存的圖是個環。
+        if (s == 9) break;  // 找不到。表示目前殘存的圖是個環。
         ref[s] = -1;        // 設為已找過（刪去s點）
  
         cout << s;          // 印出合理的排列順序的第i點
  
         // 更新ref的值（刪去由s點連出去的邊）
-        for (int t=0; t<9; ++t){
-            if (adj[s][t]){
+        for (int t=0; t<9; ++t)
+            if (adj[s][t])
                 ref[t]--;
-                }
-                }
     }
 '''
 
@@ -124,20 +119,7 @@ def t_error(t):
 
 
 # Test it out
-# data = '''
-# while(1){
-#     a--;
-#     b++;
-#     break;
-# }
-# a--;
-# while(1){
-#     c++;
-#     d--;
-#     a--;
-#     e--;
-# }
-# '''
+
 
 # global
 casedict = {}
@@ -328,27 +310,36 @@ def p_case_stmt(p):
 
 
 def p_ifstmt(p):
-    '''ifstmt : IF LP bool_expr RP LBRACE stmts RBRACE elifs stmt
-              | IF LP bool_expr RP LBRACE stmts RBRACE stmt'''
+    '''ifstmt : IF LP bool_expr RP stmt_block elifs stmt
+              | IF LP bool_expr RP stmt_block stmt'''
     global alledge
     p[0] = GetInitData()
     p[0]['headNodes'] = p[3]['headNodes']
-    g.edge(p[3]['tailNodes'][0], p[6]['headNodes'][0], label='true')
-    alledge.append((p[3]['tailNodes'][0], p[6]['headNodes'][0], 'true'))
+    g.edge(p[3]['tailNodes'][0], p[5]['headNodes'][0], label='true')
+    alledge.append((p[3]['tailNodes'][0], p[5]['headNodes'][0], 'true'))
 
-    if(len(p) == 10):
-        p[0]['tailNodes'] = p[9]['tailNodes']
-        g.edge(p[3]['tailNodes'][0], p[8]['headNodes'][0], label='false')
-        alledge.append((p[3]['tailNodes'][0], p[8]['headNodes'][0], 'false'))
-        for tail in (p[6]['tailNodes'] + p[8]['tailNodes']):
-            g.edge(tail, p[9]['headNodes'][0])
-            alledge.append((tail, p[9]['headNodes'][0], ''))
-    elif(len(p) == 9):
-        p[0]['tailNodes'] = p[8]['tailNodes']
-        g.edge(p[3]['tailNodes'][0], p[8]['headNodes'][0], label='false')
-        alledge.append((p[3]['tailNodes'][0], p[8]['headNodes'][0], 'false'))
-        g.edge(p[6]['tailNodes'][0], p[8]['headNodes'][0])
-        alledge.append((p[6]['tailNodes'][0], p[8]['headNodes'][0], ''))
+    if(len(p) == 8):
+        p[0]['tailNodes'] = p[7]['tailNodes']
+        g.edge(p[3]['tailNodes'][0], p[6]['headNodes'][0], label='false')
+        alledge.append((p[3]['tailNodes'][0], p[6]['headNodes'][0], 'false'))
+        for tail in (p[5]['tailNodes'] + p[6]['tailNodes']):
+            g.edge(tail, p[7]['headNodes'][0])
+            alledge.append((tail, p[7]['headNodes'][0], ''))
+    elif(len(p) == 7):
+        p[0]['tailNodes'] = p[6]['tailNodes']
+        g.edge(p[3]['tailNodes'][0], p[6]['headNodes'][0], label='false')
+        alledge.append((p[3]['tailNodes'][0], p[6]['headNodes'][0], 'false'))
+        g.edge(p[5]['tailNodes'][0], p[6]['headNodes'][0])
+        alledge.append((p[5]['tailNodes'][0], p[6]['headNodes'][0], ''))
+
+
+def p_stmt_block(p):
+    ''' stmt_block :  LBRACE stmts RBRACE
+                    | stmt '''
+    if(len(p) == 4):
+        p[0] = p[2]
+    else:
+        p[0] = p[1]
 
 
 def p_elseif_s(p):
@@ -367,60 +358,60 @@ def p_elseif_s(p):
 
 
 def p_elseif(p):
-    '''elif : ELSE IF LP bool_expr RP LBRACE stmts RBRACE'''
+    '''elif : ELSE IF LP bool_expr RP stmt_block'''
     global alledge
     p[0] = {'headNodes': p[4]['headNodes'],
-            'tailNodes': p[7]['tailNodes']}
-    g.edge(p[4]['tailNodes'][0], p[7]['headNodes'][0], label='true')
-    alledge.append((p[4]['tailNodes'][0], p[7]['headNodes'][0], 'true'))
+            'tailNodes': p[6]['tailNodes']}
+    g.edge(p[4]['tailNodes'][0], p[6]['headNodes'][0], label='true')
+    alledge.append((p[4]['tailNodes'][0], p[6]['headNodes'][0], 'true'))
 
 
 def p_else(p):
-    '''else : ELSE LBRACE stmts RBRACE'''
+    '''else : ELSE stmt_block'''
     print('else in')
-    p[0] = {'headNodes': p[3]['headNodes'],
-            'tailNodes': p[3]['tailNodes']}
+    p[0] = {'headNodes': p[2]['headNodes'],
+            'tailNodes': p[2]['tailNodes']}
 
 
 def p_whilestmt(p):
-    '''whilestmt : WHILE LP bool_expr RP LBRACE stmts RBRACE stmt'''
+    '''whilestmt : WHILE LP bool_expr RP stmt_block stmt'''
     p[0] = GetInitData()
     global alledge
     global skipbreaknodes
     p[0]['headNodes'] = p[3]['headNodes']
-    p[0]['tailNodes'] = p[8]['tailNodes']
+    p[0]['tailNodes'] = p[6]['tailNodes']
     # true
-    g.edge(p[3]['tailNodes'][0], p[6]['headNodes'][0], label='true')
-    alledge.append((p[3]['tailNodes'][0], p[6]['headNodes'][0], 'true'))
+    g.edge(p[3]['tailNodes'][0], p[5]['headNodes'][0], label='true')
+    alledge.append((p[3]['tailNodes'][0], p[5]['headNodes'][0], 'true'))
     # false
-    g.edge(p[3]['tailNodes'][0], p[8]['headNodes'][0], label='false')
-    alledge.append((p[3]['tailNodes'][0], p[8]['headNodes'][0], 'false'))
+    g.edge(p[3]['tailNodes'][0], p[6]['headNodes'][0], label='false')
+    alledge.append((p[3]['tailNodes'][0], p[6]['headNodes'][0], 'false'))
 
     # normal
-    if p[6]['tailNodes'][0] in skipbreaknodes:
+    if p[5]['tailNodes'][0] in skipbreaknodes:
         # break
-        g.edge(p[6]['tailNodes'][0], p[8]['headNodes'][0], label='break')
-        alledge.append((p[6]['tailNodes'][0], p[8]['headNodes'][0], 'break'))
+        g.edge(p[5]['tailNodes'][0], p[6]['headNodes'][0], label='break')
+        alledge.append((p[5]['tailNodes'][0], p[6]['headNodes'][0], 'break'))
     else:
         # loop
-        g.edge(p[6]['tailNodes'][0], p[3]['headNodes'][0], label='loop')
-        alledge.append((p[6]['tailNodes'][0], p[3]['headNodes'][0], 'loop'))
+        g.edge(p[5]['tailNodes'][0], p[3]['headNodes'][0], label='loop')
+        alledge.append((p[5]['tailNodes'][0], p[3]['headNodes'][0], 'loop'))
 
 
 def p_forstmt(p):
-    '''forstmt : FOR LP for_expr RP LBRACE stmts RBRACE stmt'''
+    '''forstmt : FOR LP for_expr RP stmt_block stmt'''
     global alledge
     p[0] = GetInitData()
     p[0]['headNodes'] = p[3]['initNodes']
-    p[0]['tailNodes'] = p[8]['tailNodes']
+    p[0]['tailNodes'] = p[6]['tailNodes']
     g.edge(p[3]['initNodes'][0], p[3]['boolNodes'][0])
     alledge.append((p[3]['initNodes'][0], p[3]['boolNodes'][0], ''))
-    g.edge(p[3]['boolNodes'][0], p[6]['headNodes'][0], label='true')
-    alledge.append((p[3]['boolNodes'][0], p[6]['headNodes'][0], 'true'))
-    g.edge(p[3]['boolNodes'][0], p[8]['headNodes'][0], label='false')
-    alledge.append((p[3]['boolNodes'][0], p[8]['headNodes'][0], 'false'))
-    g.edge(p[6]['tailNodes'][0], p[3]['postNodes'][0], label='For Routine')
-    alledge.append((p[6]['tailNodes'][0], p[3]['postNodes'][0], 'For Routine'))
+    g.edge(p[3]['boolNodes'][0], p[5]['headNodes'][0], label='true')
+    alledge.append((p[3]['boolNodes'][0], p[5]['headNodes'][0], 'true'))
+    g.edge(p[3]['boolNodes'][0], p[6]['headNodes'][0], label='false')
+    alledge.append((p[3]['boolNodes'][0], p[6]['headNodes'][0], 'false'))
+    g.edge(p[5]['tailNodes'][0], p[3]['postNodes'][0], label='For Routine')
+    alledge.append((p[5]['tailNodes'][0], p[3]['postNodes'][0], 'For Routine'))
     g.edge(p[3]['postNodes'][0], p[3]['boolNodes'][0], label='loop')
     alledge.append((p[3]['postNodes'][0], p[3]['boolNodes'][0], 'loop'))
 
