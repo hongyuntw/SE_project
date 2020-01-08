@@ -304,11 +304,11 @@ class AFDT(App):
     codeFontSize = ObjectProperty(20)
     uiFontSize = ObjectProperty(20)
     # source path of diagram
-    getDiagram = ObjectProperty('./out.gv.png')
+    getDiagram = ObjectProperty('')
 
     def __init__(self, **kwargs):
         super(AFDT, self).__init__(**kwargs)
-        self.image = Image.open(self.getDiagram)
+        self.image = None
         self.code = ''
         self.sysMessage = 'Welcome to AFDT'
         self.fileName = ''
@@ -361,7 +361,7 @@ class AFDT(App):
 
     def load(self, path, filename):
         try:
-            with open(os.path.join(path, filename[0])) as stream:
+            with open(os.path.join(path, filename[0]),encoding= 'utf-8') as stream:
                 self.code = stream.read()
                 self.UI.displayCode.text = self.code
             self.setSystemMessage('import ' + filename[0] + ' success!')
@@ -440,7 +440,7 @@ class AFDT(App):
             self.image = Image.open(self.getDiagram)
             self.setSystemMessage('Generate diagram success')
             self.UI.imageButton.reload()
-            self.image.show()
+            # self.image.show()
         except:
             self.setSystemMessage(
                 'Cannot Parse Source. Please Check You Source Code Or Try Other Program.')
