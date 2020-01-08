@@ -42,17 +42,18 @@ Rule 27    expr -> func_expr SEMI
 Rule 28    func_expr -> contents LP params RP
 Rule 29    param -> contents
 Rule 30    param -> func_expr
-Rule 31    params -> param
-Rule 32    params -> param params
-Rule 33    contents -> CONTENT
-Rule 34    contents -> CONTENT contents
+Rule 31    params -> <empty>
+Rule 32    params -> param
+Rule 33    params -> param params
+Rule 34    contents -> CONTENT
+Rule 35    contents -> CONTENT contents
 
 Terminals, with rules where they appear
 
 CASE                 : 10 12
 COLON                : 10 11 12
 COM                  : 
-CONTENT              : 33 34
+CONTENT              : 34 35
 DEFAULT              : 11
 DO                   : 
 ELSE                 : 20 21
@@ -75,7 +76,7 @@ Nonterminals, with rules where they appear
 
 bool_expr            : 9 10 12 13 14 20 22
 case_stmt            : 9 12
-contents             : 24 24 24 25 26 28 29 34
+contents             : 24 24 24 25 26 28 29 35
 elif                 : 18 19
 elifs                : 13 19
 else                 : 17
@@ -84,8 +85,8 @@ for_expr             : 23
 forstmt              : 7
 func_expr            : 27 30
 ifstmt               : 5
-param                : 31 32
-params               : 28 32
+param                : 32 33
+params               : 28 33
 stmt                 : 1 2 9 13 14 16 22 23
 stmt_block           : 13 14 20 21 22 23
 stmts                : 2 10 11 12 15 0
@@ -112,8 +113,8 @@ state 0
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -169,8 +170,8 @@ state 2
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! reduce/reduce conflict for $end resolved using rule 1 (stmts -> stmt .)
@@ -339,19 +340,19 @@ state 13
 
 state 14
 
-    (33) contents -> CONTENT .
-    (34) contents -> CONTENT . contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> CONTENT .
+    (35) contents -> CONTENT . contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
   ! shift/reduce conflict for CONTENT resolved as shift
-    SEMI            reduce using rule 33 (contents -> CONTENT .)
-    LP              reduce using rule 33 (contents -> CONTENT .)
-    RP              reduce using rule 33 (contents -> CONTENT .)
-    COLON           reduce using rule 33 (contents -> CONTENT .)
+    SEMI            reduce using rule 34 (contents -> CONTENT .)
+    LP              reduce using rule 34 (contents -> CONTENT .)
+    RP              reduce using rule 34 (contents -> CONTENT .)
+    COLON           reduce using rule 34 (contents -> CONTENT .)
     CONTENT         shift and go to state 14
 
-  ! CONTENT         [ reduce using rule 33 (contents -> CONTENT .) ]
+  ! CONTENT         [ reduce using rule 34 (contents -> CONTENT .) ]
 
     contents                       shift and go to state 23
 
@@ -384,14 +385,16 @@ state 16
 state 17
 
     (28) func_expr -> contents LP . params RP
-    (31) params -> . param
-    (32) params -> . param params
+    (31) params -> .
+    (32) params -> . param
+    (33) params -> . param params
     (29) param -> . contents
     (30) param -> . func_expr
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
+    RP              reduce using rule 31 (params -> .)
     CONTENT         shift and go to state 14
 
     contents                       shift and go to state 24
@@ -420,8 +423,8 @@ state 19
     (13) ifstmt -> IF LP . bool_expr RP stmt_block elifs stmt
     (14) ifstmt -> IF LP . bool_expr RP stmt_block stmt
     (25) bool_expr -> . contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
     CONTENT         shift and go to state 14
 
@@ -432,8 +435,8 @@ state 20
 
     (22) whilestmt -> WHILE LP . bool_expr RP stmt_block stmt
     (25) bool_expr -> . contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
     CONTENT         shift and go to state 14
 
@@ -444,8 +447,8 @@ state 21
 
     (23) forstmt -> FOR LP . for_expr RP stmt_block stmt
     (24) for_expr -> . contents SEMI contents SEMI contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
     CONTENT         shift and go to state 14
 
@@ -456,8 +459,8 @@ state 22
 
     (9) switch_stmt -> SWITCH LP . bool_expr RP LBRACE case_stmt RBRACE stmt
     (25) bool_expr -> . contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
     CONTENT         shift and go to state 14
 
@@ -466,13 +469,13 @@ state 22
 
 state 23
 
-    (34) contents -> CONTENT contents .
+    (35) contents -> CONTENT contents .
 
-    SEMI            reduce using rule 34 (contents -> CONTENT contents .)
-    LP              reduce using rule 34 (contents -> CONTENT contents .)
-    CONTENT         reduce using rule 34 (contents -> CONTENT contents .)
-    RP              reduce using rule 34 (contents -> CONTENT contents .)
-    COLON           reduce using rule 34 (contents -> CONTENT contents .)
+    SEMI            reduce using rule 35 (contents -> CONTENT contents .)
+    LP              reduce using rule 35 (contents -> CONTENT contents .)
+    CONTENT         reduce using rule 35 (contents -> CONTENT contents .)
+    RP              reduce using rule 35 (contents -> CONTENT contents .)
+    COLON           reduce using rule 35 (contents -> CONTENT contents .)
 
 
 state 24
@@ -494,18 +497,22 @@ state 25
 
 state 26
 
-    (31) params -> param .
-    (32) params -> param . params
-    (31) params -> . param
-    (32) params -> . param params
+    (32) params -> param .
+    (33) params -> param . params
+    (31) params -> .
+    (32) params -> . param
+    (33) params -> . param params
     (29) param -> . contents
     (30) param -> . func_expr
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
-    RP              reduce using rule 31 (params -> param .)
+  ! reduce/reduce conflict for RP resolved using rule 31 (params -> .)
+    RP              reduce using rule 31 (params -> .)
     CONTENT         shift and go to state 14
+
+  ! RP              [ reduce using rule 32 (params -> param .) ]
 
     param                          shift and go to state 26
     params                         shift and go to state 35
@@ -575,9 +582,9 @@ state 34
 
 state 35
 
-    (32) params -> param params .
+    (33) params -> param params .
 
-    RP              reduce using rule 32 (params -> param params .)
+    RP              reduce using rule 33 (params -> param params .)
 
 
 state 36
@@ -599,8 +606,8 @@ state 36
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -654,8 +661,8 @@ state 37
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -709,8 +716,8 @@ state 38
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -749,8 +756,8 @@ state 38
 state 39
 
     (24) for_expr -> contents SEMI . contents SEMI contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
     CONTENT         shift and go to state 14
 
@@ -785,8 +792,8 @@ state 41
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for ELSE resolved as shift
@@ -859,8 +866,8 @@ state 43
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -907,8 +914,8 @@ state 44
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -958,8 +965,8 @@ state 45
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -1028,8 +1035,8 @@ state 48
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -1142,8 +1149,8 @@ state 52
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -1221,8 +1228,8 @@ state 55
 state 56
 
     (24) for_expr -> contents SEMI contents SEMI . contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
     CONTENT         shift and go to state 14
 
@@ -1240,8 +1247,8 @@ state 58
     (10) case_stmt -> CASE . bool_expr COLON stmts
     (12) case_stmt -> CASE . bool_expr COLON stmts case_stmt
     (25) bool_expr -> . contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
     CONTENT         shift and go to state 14
 
@@ -1351,8 +1358,8 @@ state 66
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -1412,8 +1419,8 @@ state 68
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -1450,8 +1457,8 @@ state 69
     (13) ifstmt -> IF LP . bool_expr RP stmt_block elifs stmt
     (14) ifstmt -> IF LP . bool_expr RP stmt_block stmt
     (25) bool_expr -> . contents
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
 
     CONTENT         shift and go to state 14
 
@@ -1493,8 +1500,8 @@ state 71
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -1577,8 +1584,8 @@ state 75
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! shift/reduce conflict for IF resolved as shift
@@ -1644,8 +1651,8 @@ state 77
     (22) whilestmt -> . WHILE LP bool_expr RP stmt_block stmt
     (23) forstmt -> . FOR LP for_expr RP stmt_block stmt
     (9) switch_stmt -> . SWITCH LP bool_expr RP LBRACE case_stmt RBRACE stmt
-    (33) contents -> . CONTENT
-    (34) contents -> . CONTENT contents
+    (34) contents -> . CONTENT
+    (35) contents -> . CONTENT contents
     (28) func_expr -> . contents LP params RP
 
   ! reduce/reduce conflict for ELSE resolved using rule 3 (stmt -> .)
@@ -1792,6 +1799,9 @@ WARNING: shift/reduce conflict for SWITCH in state 77 resolved as shift
 WARNING: shift/reduce conflict for CONTENT in state 77 resolved as shift
 WARNING: reduce/reduce conflict in state 2 resolved using rule (stmts -> stmt)
 WARNING: rejected rule (stmt -> <empty>) in state 2
+WARNING: reduce/reduce conflict in state 26 resolved using rule (params -> <empty>)
+WARNING: rejected rule (params -> param) in state 26
 WARNING: reduce/reduce conflict in state 77 resolved using rule (stmt -> <empty>)
 WARNING: rejected rule (elif -> ELSE IF LP bool_expr RP stmt_block) in state 77
+WARNING: Rule (params -> param) is never reduced
 WARNING: Rule (elif -> ELSE IF LP bool_expr RP stmt_block) is never reduced

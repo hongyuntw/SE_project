@@ -13,20 +13,9 @@ from graphviz import Digraph
 g = Digraph()
 
 data = '''
-switch(a){
-    case 1:
-        a++;
-        break;
-    case 2:
-    case 3:
-        a--;
-        break;
-    default:
-        d--;
-        break;
-
-}
-abcd;
+Console console;
+console = new Console("test",20);
+console.newRate(10);
 '''
 
 delimiters_dict = {
@@ -92,7 +81,7 @@ t_ignore_LINES_COMMENT = r'\/\*(.|\n)+\*\/'
 
 
 def t_CONTENT(t):
-    r'[a-zA-Z0-9_><=&\^%\!#$\\\*\+\-\[\]\?\|,]+'
+    r'[a-zA-Z0-9_><=&\^%\!#$\\\*\+\-\[\]\?\|,\.\'\"]+'
     # r'[a-zA-Z0-9\^\+\[\]\?\-\|,=<>]+'
     t.type = keyword_dict.get(t.value, 'CONTENT')    # Check for reserved words
     print(t)
@@ -498,7 +487,8 @@ def p_param(p):
 
 
 def p_params(p):
-    '''params : param
+    '''params : 
+              | param
               | param params'''
     p[0] = ''.join(p[1:])
 
@@ -632,7 +622,7 @@ def analysis_tool(code=data):
             newg.edge(startnode, endnode, label=label)
     newg.render(filename='out.gv', format='png')
     # g.view()
-    # newg.view()
+    newg.view()
 
 
-# analysis_tool(data)
+analysis_tool(data)
