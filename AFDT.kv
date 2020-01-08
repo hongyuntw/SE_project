@@ -67,10 +67,12 @@
         size: root.size
         pos: root.pos
         orientation: "vertical"
-        Label:
-			font_size:app.uiFontSize
-			text:"[b]<Hot key>[/b]\n- Ctrl+S Save image\n- Ctrl+O Open file\n- Ctrl+P Analysis\n[b]<Tips>[/b]\n- You can drag files directly into the code block.\n- Click the diagram to see more clearly.\n- Click clear but\n[b]<Notice>[/b]\n- This program now can only analysis C and C++ grammar\n- Please don't paste any personal information on our program"
-			markup : True
+        ScrollView:
+			Label:
+				font_size:app.uiFontSize
+				text:"[b]<Hot key>[/b]\n- Ctrl+S Save image\n- Ctrl+O Open file\n- Ctrl+P Analysis\n[b]<Tips>[/b]\n- You can drag files directly into the code block.\n- Click the diagram to see more clearly.\n- Click clear but\n[b]<Notice>[/b]\n- This program now can only analysis C and C++ grammar\n- Please don't paste any personal information on our program"
+				text_size: root.width, None
+				markup : True
 		BoxLayout:
             size_hint_y: None
             height: 30
