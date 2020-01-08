@@ -185,28 +185,28 @@ class ButtonList(BoxLayout):
             App.get_running_app().setUserHintMessage('')
 
         if self.ids.importfile_btn.collide_point(p[0], p[1]):
-            App.get_running_app().setUserHintMessage('press button to import file')
+            App.get_running_app().setUserHintMessage('Press button to import file')
             self.ids.importfile_btn.background_color = (1.0, 0.0, 0.0, 1.0)
 
         if self.ids.importfile_btn.collide_point(p[0], p[1]) == False:
             self.ids.importfile_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
         if self.ids.drawdiagram_btn.collide_point(p[0], p[1]):
-            App.get_running_app().setUserHintMessage('press button to draw diagram')
+            App.get_running_app().setUserHintMessage('Press button to draw diagram')
             self.ids.drawdiagram_btn.background_color = (1.0, 0, 0, 1.0)
 
         if self.ids.drawdiagram_btn.collide_point(p[0], p[1]) == False:
             self.ids.drawdiagram_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
         if self.ids.saveimage_btn.collide_point(p[0], p[1]):
-            App.get_running_app().setUserHintMessage('press button to save image')
+            App.get_running_app().setUserHintMessage('Press button to save image')
             self.ids.saveimage_btn.background_color = (1.0, 0, 0, 1.0)
 
         if self.ids.saveimage_btn.collide_point(p[0], p[1]) == False:
             self.ids.saveimage_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
         if self.ids.clear_btn.collide_point(p[0], p[1]):
-            App.get_running_app().setUserHintMessage('press button to clear code')
+            App.get_running_app().setUserHintMessage('Press button to clear code')
             self.ids.clear_btn.background_color = (1.0, 0, 0, 1.0)
 
         if self.ids.clear_btn.collide_point(p[0], p[1]) == False:
@@ -214,14 +214,14 @@ class ButtonList(BoxLayout):
 
         if self.ids.userpreference_btn.collide_point(p[0], p[1]):
             App.get_running_app().setUserHintMessage(
-                'press button to setting user preference')
+                'Press button to setting user preference')
             self.ids.userpreference_btn.background_color = (1.0, 0, 0, 1.0)
 
         if self.ids.userpreference_btn.collide_point(p[0], p[1]) == False:
             self.ids.userpreference_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
         if self.ids.userhelp_btn.collide_point(p[0], p[1]):
-            App.get_running_app().setUserHintMessage('press button to see user help')
+            App.get_running_app().setUserHintMessage('Press button to see user help')
             self.ids.userhelp_btn.background_color = (1.0, 0, 0, 1.0)
 
         if self.ids.userhelp_btn.collide_point(p[0], p[1]) == False:
@@ -332,7 +332,7 @@ class AFDT(App):
 
     def set_text_size(self, text_size):
         self.UI.displayCode.font_size = text_size
-        print('txt size set to ' + text_size)
+        print('Txt size set to ' + text_size)
         self.dismiss_popup()
         pass
 
@@ -353,7 +353,7 @@ class AFDT(App):
 
     def viewImage(self):
         content = floatImage()
-        self._popup = Popup(title="Float chart view", content=content,
+        self._popup = Popup(title="Diagram", content=content,
                             size_hint=(1, 0.8), auto_dismiss=True)
         self._popup.open()
 
@@ -364,7 +364,7 @@ class AFDT(App):
             with open(os.path.join(path, filename[0]),encoding= 'utf-8') as stream:
                 self.code = stream.read()
                 self.UI.displayCode.text = self.code
-            self.setSystemMessage('import ' + filename[0] + ' success!')
+            self.setSystemMessage('Import ' + filename[0] + ' success!')
         except:
             self.setSystemMessage('Error file type!')
             pass
@@ -388,7 +388,7 @@ class AFDT(App):
             with open(file_path.decode()) as stream:
                 self.code = stream.read()
                 self.UI.displayCode.text = self.code
-            self.setSystemMessage('import ' + file_path.decode() + ' success!')
+            self.setSystemMessage('Import ' + file_path.decode() + ' success!')
         except:
             self.setSystemMessage('Error file type!')
             pass

@@ -42,7 +42,13 @@
 			size_hint_y: 0.1
 			id:sysMessageLabel
 
-<ImageButton>:	
+<ImageButton>:
+	canvas.before:
+        Color:
+            rgba: 1,1,1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
 	allow_stretch: True
     keep_ratio: False
 	size:root.size
