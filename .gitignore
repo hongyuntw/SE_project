@@ -1,3 +1,5 @@
 *.png
 *.pdf
 *.gv
+*.out
+pyinstaller/
