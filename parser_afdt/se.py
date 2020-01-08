@@ -12,6 +12,42 @@ from graphviz import Digraph
 # Build the graph
 g = Digraph()
 
+data = '''
+bool adj[9][9]; // adjacency matrix
+int ref[9];     // 記錄圖上每一個點目前仍被多少條邊連到
+ 
+    for (int i=0; i<9; ++i){ref[i] = 0;} // 初始化為0
+ 
+    // 累計圖上每一個點被幾條邊連到
+    for (int i=0; i<9; ++i){
+        for (int j=0; j<9; ++j){
+            if (adj[i][j]){
+                ref[j]++;
+                }
+                }
+                }
+ 
+    // 開始找出一個合理的排列順序
+    for (int i=0; i<9; ++i)
+    {
+        // 尋找沒有被任何邊連向的點
+        int s = 0;
+        while (s < 9 && ref[s] != 0) {++s;}
+ 
+        if (s == 9) {break;}  // 找不到。表示目前殘存的圖是個環。
+        ref[s] = -1;        // 設為已找過（刪去s點）
+ 
+        cout << s;          // 印出合理的排列順序的第i點
+ 
+        // 更新ref的值（刪去由s點連出去的邊）
+        for (int t=0; t<9; ++t){
+            if (adj[s][t]){
+                ref[t]--;
+                }
+                }
+    }
+'''
+
 delimiters_dict = {
     '(': 'LP',
     ')': 'RP',
@@ -33,19 +69,14 @@ keyword_dict = {
     'if': 'IF',
     'switch': 'SWITCH',
     'while': 'WHILE',
-    'default':'DEFAULT'
+    'default': 'DEFAULT'
 }
 op_dict = {
 }
 
-tokens = ['CONTENT'] + list(op_dict.values()) + \
-    list(keyword_dict.values()) + list(delimiters_dict.values())
-
-def t_CONTENT(t):
-    r'[a-zA-Z_><=&^%!#$*0-9+\[\]\?\--\/,]+'
-    t.type = keyword_dict.get(t.value, 'CONTENT')    # Check for reserved words
-    return t
-
+tokens = list(keyword_dict.values()) + \
+    list(delimiters_dict.values()) \
+    + ['CONTENT']
 
 # keyword
 t_CASE = r'case'
@@ -62,12 +93,7 @@ t_LP = r'\('
 t_RP = r'\)'
 t_LBRACE = r'\{'
 t_RBRACE = r'\}'
-t_SPACE = r'\s'
-t_LCOM = r'/\*'
-t_RCOM = r'\*/'
-t_COM = r'//'
 t_SEMI = r';'
-t_COLON = r':'
 
 # Define a rule so we can track line numbers
 
@@ -78,37 +104,48 @@ def t_newline(t):
 
 
 # A string containing ignored characters (spaces and tabs)
-t_ignore = ' \t+'
+t_ignore = ' \t'
+t_ignore_LINE_COMMENT = r'\/\/.+\n'
+t_ignore_LINES_COMMENT = r'\/\*(.|\n)+\*\/'
+
+
+def t_CONTENT(t):
+    r'[a-zA-Z0-9_><=&\^%\!#$\\\*\+\-\[\]\?\|,]+'
+    # r'[a-zA-Z0-9\^\+\[\]\?\-\|,=<>]+'
+    t.type = keyword_dict.get(t.value, 'CONTENT')    # Check for reserved words
+    print(t)
+    return t
+
 
 # Error handling rule
-
-
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
 
+
 # Test it out
-data = '''
-while(1){
-    a--;
-    b++;
-    break;
-}
-a--;
-while(1){
-    c++;
-    d--;
-    a--;
-    e--;
-}
-'''
+# data = '''
+# while(1){
+#     a--;
+#     b++;
+#     break;
+# }
+# a--;
+# while(1){
+#     c++;
+#     d--;
+#     a--;
+#     e--;
+# }
+# '''
+
 # global
 casedict = {}
 myowndict = {}
 need_add_edge = {}
 defaultnodes = {}
 # 記錄每個node and edge for最後empty處理的部分
-alledge =  []
+alledge = []
 allnode = {}
 seq = 1
 layer = 0
@@ -127,6 +164,7 @@ skipbreaknodes = []
 #         break      # No more input
 #     print(tok)
 
+
 def GetInitData():
     return {'headNodes': [],
             'tailNodes': []}
@@ -144,7 +182,7 @@ def p_stmts(p):
         p[0]['headNodes'] = p[1]['headNodes']
         p[0]['tailNodes'] = p[1]['tailNodes']
         # if allnode[p[1]['headNodes'][0]][0] == 'break;':
-        #     breaknodes.append(p[1]['headNodes'][0])            
+        #     breaknodes.append(p[1]['headNodes'][0])
     if (len(p) == 3):
         # check breaknodes
         for startNode in p[1]['tailNodes']:
@@ -177,7 +215,7 @@ def p_stmt(p):
         p[0]['headNodes'] = [f'{seq}.{layer}.{empty}']
         p[0]['tailNodes'] = p[0]['headNodes']
         g.node(f'{seq}.{layer}.{empty}', 'empty')
-        allnode[f'{seq}.{layer}.{empty}']= ('empty','')
+        allnode[f'{seq}.{layer}.{empty}'] = ('empty', '')
         myowndict[f'{seq}.{layer}.{empty}'] = 'empty'
         empty += 1
     else:
@@ -196,25 +234,25 @@ def p_switch_stmt(p):
 
     tp = allnode[p[3]['headNodes'][0]]
     allnode[p[3]['headNodes'][0]] = (tp[0], 'house')
-    
+
     # p0 headnode?
     edgedict = {}
     for head in p[6]['headNodes']:
         g.edge(p[3]['tailNodes'][0], head, label='switch')
-        alledge.append((p[3]['tailNodes'][0],head,'switch'))
+        alledge.append((p[3]['tailNodes'][0], head, 'switch'))
         if (head in casedict):
             pass
         else:
             seq_t = int(head[: head.find('.')])
-            layer_t = int(head[head.find('.')+1 :])+1
+            layer_t = int(head[head.find('.')+1:])+1
             belinknode = f'{seq_t}.{layer_t}'
             if(head in defaultnodes):
                 g.edge(head, defaultnodes[head][-1])
-                alledge.append((head,defaultnodes[head][-1],''))
+                alledge.append((head, defaultnodes[head][-1], ''))
                 flag = True
             else:
                 g.edge(head, belinknode)
-                alledge.append((head,belinknode,''))
+                alledge.append((head, belinknode, ''))
                 edgedict[head] = belinknode
     newcasedict = {}
     i = 0
@@ -235,23 +273,23 @@ def p_switch_stmt(p):
                 break
         except:
             i += 1
-            if len(keys)>0:
+            if len(keys) > 0:
                 i = i % len(keys)
             if (count >= len(keys)):
                 break
 
-    for k,v in newcasedict.items():
+    for k, v in newcasedict.items():
         g.edge(k, newcasedict[k])
-        alledge.append((k,newcasedict[k],''))
-        
+        alledge.append((k, newcasedict[k], ''))
+
     for tail in p[6]['tailNodes']:
-        g.edge(tail,p[8]['tailNodes'][0])
-        alledge.append((tail,p[8]['tailNodes'][0],''))
+        g.edge(tail, p[8]['tailNodes'][0])
+        alledge.append((tail, p[8]['tailNodes'][0], ''))
     p[0]['headNodes'].append(p[3]['headNodes'][0])
     p[0]['tailNodes'] = p[8]['tailNodes']
     if (not flag):
-        g.edge(p[3]['headNodes'][0],p[8]['headNodes'][0])
-        alledge.append((p[3]['headNodes'][0],p[8]['headNodes'][0],''))
+        g.edge(p[3]['headNodes'][0], p[8]['headNodes'][0])
+        alledge.append((p[3]['headNodes'][0], p[8]['headNodes'][0], ''))
 
 
 def p_case_stmt(p):
@@ -271,28 +309,22 @@ def p_case_stmt(p):
     elif len(p) == 4:
         print('default')
         g.node(f'{seq}.{layer}', label='default', shape='box')
-        allnode[f'{seq}.{layer}'] = ('default','box')
+        allnode[f'{seq}.{layer}'] = ('default', 'box')
         p[0]['headNodes'].append(f'{seq}.{layer}')
         p[0]['tailNodes'] = p[3]['tailNodes']
         defaultnodes[f'{seq}.{layer}'] = p[3]['tailNodes']
-        layer+=1
-
+        layer += 1
 
     elif len(p) == 6:
         if (myowndict[p[4]['headNodes'][0]] == 'empty'):
             casedict[p[2]['headNodes'][0]] = p[5]['headNodes'][0]
-            p[0]['headNodes'] = p[2]['headNodes']+ p[5]['headNodes']
+            p[0]['headNodes'] = p[2]['headNodes'] + p[5]['headNodes']
             # p[0]['headNodes'] = p[5]['headNodes']+ p[2]['headNodes']
             p[0]['tailNodes'] = p[5]['tailNodes']
-        else :
+        else:
             p[0]['headNodes'] = p[2]['headNodes'] + p[5]['headNodes']
             # p[0]['headNodes'] = p[5]['headNodes'] + p[2]['headNodes']
             p[0]['tailNodes'] = p[4]['tailNodes'] + p[5]['tailNodes']
-
-        
-
-
-        
 
 
 def p_ifstmt(p):
@@ -302,21 +334,21 @@ def p_ifstmt(p):
     p[0] = GetInitData()
     p[0]['headNodes'] = p[3]['headNodes']
     g.edge(p[3]['tailNodes'][0], p[6]['headNodes'][0], label='true')
-    alledge.append((p[3]['tailNodes'][0],p[6]['headNodes'][0],'true'))
-    
+    alledge.append((p[3]['tailNodes'][0], p[6]['headNodes'][0], 'true'))
+
     if(len(p) == 10):
         p[0]['tailNodes'] = p[9]['tailNodes']
         g.edge(p[3]['tailNodes'][0], p[8]['headNodes'][0], label='false')
-        alledge.append((p[3]['tailNodes'][0],p[8]['headNodes'][0],'false'))
+        alledge.append((p[3]['tailNodes'][0], p[8]['headNodes'][0], 'false'))
         for tail in (p[6]['tailNodes'] + p[8]['tailNodes']):
             g.edge(tail, p[9]['headNodes'][0])
-            alledge.append((tail,p[9]['headNodes'][0],''))
+            alledge.append((tail, p[9]['headNodes'][0], ''))
     elif(len(p) == 9):
         p[0]['tailNodes'] = p[8]['tailNodes']
         g.edge(p[3]['tailNodes'][0], p[8]['headNodes'][0], label='false')
-        alledge.append((p[3]['tailNodes'][0],p[8]['headNodes'][0],'false'))
+        alledge.append((p[3]['tailNodes'][0], p[8]['headNodes'][0], 'false'))
         g.edge(p[6]['tailNodes'][0], p[8]['headNodes'][0])
-        alledge.append((p[6]['tailNodes'][0],p[8]['headNodes'][0],''))
+        alledge.append((p[6]['tailNodes'][0], p[8]['headNodes'][0], ''))
 
 
 def p_elseif_s(p):
@@ -331,7 +363,7 @@ def p_elseif_s(p):
         p[0]['headNodes'] = p[1]['headNodes']
         p[0]['tailNodes'] = p[1]['tailNodes'] + p[2]['tailNodes']
         g.edge(p[1]['headNodes'][0], p[2]['headNodes'][0], label='false')
-        alledge.append((p[1]['headNodes'][0],p[2]['headNodes'][0],'false'))
+        alledge.append((p[1]['headNodes'][0], p[2]['headNodes'][0], 'false'))
 
 
 def p_elseif(p):
@@ -340,7 +372,7 @@ def p_elseif(p):
     p[0] = {'headNodes': p[4]['headNodes'],
             'tailNodes': p[7]['tailNodes']}
     g.edge(p[4]['tailNodes'][0], p[7]['headNodes'][0], label='true')
-    alledge.append((p[4]['tailNodes'][0],p[7]['headNodes'][0],'true'))
+    alledge.append((p[4]['tailNodes'][0], p[7]['headNodes'][0], 'true'))
 
 
 def p_else(p):
@@ -359,21 +391,20 @@ def p_whilestmt(p):
     p[0]['tailNodes'] = p[8]['tailNodes']
     # true
     g.edge(p[3]['tailNodes'][0], p[6]['headNodes'][0], label='true')
-    alledge.append((p[3]['tailNodes'][0],p[6]['headNodes'][0],'true'))
+    alledge.append((p[3]['tailNodes'][0], p[6]['headNodes'][0], 'true'))
     # false
     g.edge(p[3]['tailNodes'][0], p[8]['headNodes'][0], label='false')
     alledge.append((p[3]['tailNodes'][0], p[8]['headNodes'][0], 'false'))
-    
 
     # normal
     if p[6]['tailNodes'][0] in skipbreaknodes:
         # break
         g.edge(p[6]['tailNodes'][0], p[8]['headNodes'][0], label='break')
-        alledge.append((p[6]['tailNodes'][0],p[8]['headNodes'][0],'break'))
+        alledge.append((p[6]['tailNodes'][0], p[8]['headNodes'][0], 'break'))
     else:
         # loop
         g.edge(p[6]['tailNodes'][0], p[3]['headNodes'][0], label='loop')
-        alledge.append((p[6]['tailNodes'][0],p[3]['headNodes'][0],'loop'))
+        alledge.append((p[6]['tailNodes'][0], p[3]['headNodes'][0], 'loop'))
 
 
 def p_forstmt(p):
@@ -383,15 +414,15 @@ def p_forstmt(p):
     p[0]['headNodes'] = p[3]['initNodes']
     p[0]['tailNodes'] = p[8]['tailNodes']
     g.edge(p[3]['initNodes'][0], p[3]['boolNodes'][0])
-    alledge.append((p[3]['initNodes'][0],p[3]['boolNodes'][0],''))
+    alledge.append((p[3]['initNodes'][0], p[3]['boolNodes'][0], ''))
     g.edge(p[3]['boolNodes'][0], p[6]['headNodes'][0], label='true')
-    alledge.append((p[3]['boolNodes'][0],p[6]['headNodes'][0],'true'))
+    alledge.append((p[3]['boolNodes'][0], p[6]['headNodes'][0], 'true'))
     g.edge(p[3]['boolNodes'][0], p[8]['headNodes'][0], label='false')
-    alledge.append((p[3]['boolNodes'][0],p[8]['headNodes'][0],'false'))
+    alledge.append((p[3]['boolNodes'][0], p[8]['headNodes'][0], 'false'))
     g.edge(p[6]['tailNodes'][0], p[3]['postNodes'][0], label='For Routine')
-    alledge.append((p[6]['tailNodes'][0],p[3]['postNodes'][0],'For Routine'))
+    alledge.append((p[6]['tailNodes'][0], p[3]['postNodes'][0], 'For Routine'))
     g.edge(p[3]['postNodes'][0], p[3]['boolNodes'][0], label='loop')
-    alledge.append((p[3]['postNodes'][0],p[3]['boolNodes'][0],'loop'))
+    alledge.append((p[3]['postNodes'][0], p[3]['boolNodes'][0], 'loop'))
 
 
 def p_for_expr(p):
@@ -400,11 +431,11 @@ def p_for_expr(p):
     global allnode
     p[0] = GetInitData()
     g.node(f'{seq}.{layer}', p[1], shape='box')
-    allnode[f'{seq}.{layer}'] = (p[1],'box')
+    allnode[f'{seq}.{layer}'] = (p[1], 'box')
     g.node(f'{seq}.{layer+1}', p[3], shape='diamond')
-    allnode[f'{seq}.{layer+1}'] = (p[3],'diamond')
+    allnode[f'{seq}.{layer+1}'] = (p[3], 'diamond')
     g.node(f'{seq}.{layer+2}', p[5], shape='box')
-    allnode[f'{seq}.{layer+2}'] = (p[5],'box')
+    allnode[f'{seq}.{layer+2}'] = (p[5], 'box')
     p[0]['initNodes'] = [f'{seq}.{layer}']
     p[0]['boolNodes'] = [f'{seq}.{layer+1}']
     p[0]['postNodes'] = [f'{seq}.{layer+2}']
@@ -420,7 +451,7 @@ def p_bool_expr(p):
             'tailNodes': [f'{seq}.{layer}']}
     # create Node
     g.node(f'{seq}.{layer}', p[1], shape='diamond')
-    allnode[f'{seq}.{layer}'] = (p[1],'diamond')
+    allnode[f'{seq}.{layer}'] = (p[1], 'diamond')
     myowndict[f'{seq}.{layer}'] = p[1]
     layer += 1
 
@@ -443,28 +474,30 @@ def p_expr(p):
         p[0] = {'headNodes': [f'{seq}.{layer}'],
                 'tailNodes': [f'{seq}.{layer}']}
         g.node(f'{seq}.{layer}', name, shape='box')
-        allnode[f'{seq}.{layer}'] = (name,'box')
+        allnode[f'{seq}.{layer}'] = (name, 'box')
         myowndict[f'{seq}.{layer}'] = name
         previous_node = f'{seq}.{layer}'
         layer += 1
         print(''.join(p[1:]))
         print('expr in ')
-    
+
 
 def p_func(p):
     '''func_expr : contents LP params RP'''
     p[0] = ''.join(p[1:])
+
 
 def p_param(p):
     '''param : contents
              | func_expr '''
     p[0] = ''.join(p[1:])
 
+
 def p_params(p):
     '''params : param
               | param params'''
     p[0] = ''.join(p[1:])
-    
+
 
 def p_contents(p):
     ''' contents : CONTENT 
@@ -477,7 +510,8 @@ def p_contents(p):
 
 
 def p_error(p):
-    print('error')
+    raise 'Cannot Parse'
+    # print('error')
 
 
 # Build the lexer
@@ -490,9 +524,9 @@ def analysis_tool(code=data):
     global parser
     global lexer
     global g
-    g = Digraph('G')
+    g = Digraph(name='rawGraph', comment='Unprocessed Graph')
     # create a new graph without empty
-    newg = Digraph('G')
+    newg = Digraph(name='trueGraph', comment='Processed Graph')
     parser.parse(code, lexer=lexer)
 
     emptylist = []
@@ -555,6 +589,9 @@ def analysis_tool(code=data):
         label = tp[2]
         if not (startnode in emptylist or endnode in emptylist):
             newg.edge(startnode, endnode, label=label)
-    newg.render('out.gv', format='png')
+    newg.render(filename='out.gv.png', format='png')
     # g.view()
-    # newg.view()
+    newg.view()
+
+
+analysis_tool(data)

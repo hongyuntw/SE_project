@@ -419,7 +419,7 @@ class AFDT(App):
     def draw(self):
         # self.code
         try:
-            analysis_tool()
+            analysis_tool(code = self.code)
             self.getDiagram = './out.gv.png'
             self.image = Image.open(self.getDiagram)
             self.setSystemMessage('Generate diagram success')
