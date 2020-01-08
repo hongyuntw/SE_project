@@ -20,15 +20,18 @@ from parser_afdt.se import analysis_tool
 Window.minimum_height = 600
 Window.minimum_width = 750
 
+
 class ImageButton(ButtonBehavior, uiImage):
     def viewImage(self):
-        if  App.get_running_app().getDiagram != '':
+        if App.get_running_app().getDiagram != '':
             App.get_running_app().viewImage()
     pass
+
 
 class UI(BoxLayout):
 
     pass
+
 
 class DisplayImage(ScatterLayout):
     move_lock = False
@@ -69,14 +72,14 @@ class DisplayImage(ScatterLayout):
         top = mid_y + (inner_height / 2)
         bottom = mid_y - (inner_height / 2)
 
-            # just do a simple one finger drag
+        # just do a simple one finger drag
         if len(self._touches) == self.translation_touches:
             # _last_touch_pos has last pos in correct parent space,
             # just like incoming touch
             dx = (touch.x - self._last_touch_pos[touch][0]) \
-                 * self.do_translation_x
+                * self.do_translation_x
             dy = (touch.y - self._last_touch_pos[touch][1]) \
-                 * self.do_translation_y
+                * self.do_translation_y
             dx = dx / self.translation_touches
             dy = dy / self.translation_touches
             if (touch.x > left and touch.x < right and touch.y < top and touch.y > bottom or self.move_lock) and not self.scale_lock_left and not self.scale_lock_right and not self.scale_lock_top and not self.scale_lock_bottom:
@@ -122,12 +125,12 @@ class DisplayImage(ScatterLayout):
         if touch.is_mouse_scrolling:
             if touch.button == 'scrolldown':
                 print('down')
-                ## zoom in
+                # zoom in
                 if self.scale < 10:
                     self.scale = self.scale * 1.1
 
             elif touch.button == 'scrollup':
-                print('up')## zoom out
+                print('up')  # zoom out
                 if self.scale > 1:
                     self.scale = self.scale * 0.8
 
@@ -170,64 +173,63 @@ class DisplayImage(ScatterLayout):
 
         return True
 
+
 class ButtonList(BoxLayout):
 
     def __init__(self, **kwargs):
         Window.bind(mouse_pos=self._on_mouse_pos)
         super(ButtonList, self).__init__(**kwargs)
 
-    def _on_mouse_pos(self,w,p):
-        if self.collide_point(p[0],p[1]) == False:
+    def _on_mouse_pos(self, w, p):
+        if self.collide_point(p[0], p[1]) == False:
             App.get_running_app().setUserHintMessage('')
 
-        if self.ids.importfile_btn.collide_point(p[0],p[1]):
+        if self.ids.importfile_btn.collide_point(p[0], p[1]):
             App.get_running_app().setUserHintMessage('press button to import file')
             self.ids.importfile_btn.background_color = (1.0, 0.0, 0.0, 1.0)
 
-        if self.ids.importfile_btn.collide_point(p[0],p[1]) == False:
+        if self.ids.importfile_btn.collide_point(p[0], p[1]) == False:
             self.ids.importfile_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
-        if self.ids.drawdiagram_btn.collide_point(p[0],p[1]):
+        if self.ids.drawdiagram_btn.collide_point(p[0], p[1]):
             App.get_running_app().setUserHintMessage('press button to draw diagram')
             self.ids.drawdiagram_btn.background_color = (1.0, 0, 0, 1.0)
 
-        if self.ids.drawdiagram_btn.collide_point(p[0],p[1]) == False:
+        if self.ids.drawdiagram_btn.collide_point(p[0], p[1]) == False:
             self.ids.drawdiagram_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
-
-        if self.ids.saveimage_btn.collide_point(p[0],p[1]):
+        if self.ids.saveimage_btn.collide_point(p[0], p[1]):
             App.get_running_app().setUserHintMessage('press button to save image')
             self.ids.saveimage_btn.background_color = (1.0, 0, 0, 1.0)
 
-        if self.ids.saveimage_btn.collide_point(p[0],p[1]) == False:
+        if self.ids.saveimage_btn.collide_point(p[0], p[1]) == False:
             self.ids.saveimage_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
-        if self.ids.clear_btn.collide_point(p[0],p[1]):
+        if self.ids.clear_btn.collide_point(p[0], p[1]):
             App.get_running_app().setUserHintMessage('press button to clear code')
             self.ids.clear_btn.background_color = (1.0, 0, 0, 1.0)
 
-        if self.ids.clear_btn.collide_point(p[0],p[1]) == False:
+        if self.ids.clear_btn.collide_point(p[0], p[1]) == False:
             self.ids.clear_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
-        if self.ids.userpreference_btn.collide_point(p[0],p[1]):
-            App.get_running_app().setUserHintMessage('press button to setting user preference')
+        if self.ids.userpreference_btn.collide_point(p[0], p[1]):
+            App.get_running_app().setUserHintMessage(
+                'press button to setting user preference')
             self.ids.userpreference_btn.background_color = (1.0, 0, 0, 1.0)
 
-        if self.ids.userpreference_btn.collide_point(p[0],p[1]) == False:
+        if self.ids.userpreference_btn.collide_point(p[0], p[1]) == False:
             self.ids.userpreference_btn.background_color = (1.0, 1.0, 1.0, 1.0)
 
-        if self.ids.userhelp_btn.collide_point(p[0],p[1]):
+        if self.ids.userhelp_btn.collide_point(p[0], p[1]):
             App.get_running_app().setUserHintMessage('press button to see user help')
             self.ids.userhelp_btn.background_color = (1.0, 0, 0, 1.0)
 
-        if self.ids.userhelp_btn.collide_point(p[0],p[1]) == False:
+        if self.ids.userhelp_btn.collide_point(p[0], p[1]) == False:
             self.ids.userhelp_btn.background_color = (1.0, 1.0, 1.0, 1.0)
-
 
     def draw(self):
         print('d')
         App.get_running_app().draw()
-
 
     def openFolder(self):
         App.get_running_app().openFolder()
@@ -237,7 +239,9 @@ class ButtonList(BoxLayout):
 
     def clear(self):
         App.get_running_app().clear()
-        print(App.get_running_app().root.width,App.get_running_app().root.height)
+        print(App.get_running_app().root.width,
+              App.get_running_app().root.height)
+
     def saveFile(self):
         App.get_running_app().saveFile()
 
@@ -249,10 +253,12 @@ class ButtonList(BoxLayout):
 
     pass
 
+
 class settingDialog(FloatLayout):
     ok = ObjectProperty(None)
     cancel = ObjectProperty(None)
     pass
+
 
 class userHelpDialog(FloatLayout):
 
@@ -260,29 +266,36 @@ class userHelpDialog(FloatLayout):
 
     pass
 
+
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
+
 
 class SaveDialog(FloatLayout):
     save = ObjectProperty(None)
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
 
+
 class floatImage(FloatLayout):
 
     pass
+
 
 class DisplayCode(ScrollView):
 
     pass
 
+
 class SysMessage(Label):
 
     pass
 
+
 class UserHintMessage(Label):
     pass
+
 
 class AFDT(App):
     loadfile = ObjectProperty(None)
@@ -291,7 +304,8 @@ class AFDT(App):
     codeFontSize = ObjectProperty(20)
     uiFontSize = ObjectProperty(20)
     # source path of diagram
-    getDiagram = ObjectProperty('./default.png')
+    getDiagram = ObjectProperty('./out.gv.png')
+
     def __init__(self, **kwargs):
         super(AFDT, self).__init__(**kwargs)
         self.image = Image.open(self.getDiagram)
@@ -308,23 +322,22 @@ class AFDT(App):
         self._popup = Popup(title="help", content=content,
                             size_hint=(0.9, 0.9))
         self._popup.open()
-        
+
     def show_setting(self):
-        content = settingDialog(ok=self.set_text_size,cancel=self.dismiss_popup)
+        content = settingDialog(ok=self.set_text_size,
+                                cancel=self.dismiss_popup)
         self._popup = Popup(title="User Preferences", content=content,
                             size_hint=(0.8, 0.3))
         self._popup.open()
 
-
     def set_text_size(self, text_size):
         self.UI.displayCode.font_size = text_size
-        print('txt size set to '+ text_size)
+        print('txt size set to ' + text_size)
         self.dismiss_popup()
         pass
 
     def dismiss_popup(self):
         self._popup.dismiss()
-
 
     def show_load(self):
         content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
@@ -341,7 +354,7 @@ class AFDT(App):
     def viewImage(self):
         content = floatImage()
         self._popup = Popup(title="Float chart view", content=content,
-                            size_hint=(1, 0.8),auto_dismiss=True)
+                            size_hint=(1, 0.8), auto_dismiss=True)
         self._popup.open()
 
     # laod & save
@@ -362,11 +375,12 @@ class AFDT(App):
         try:
             p = path + '/' + filename + '.png'
             print(p)
-            self.image.save(p,'png')
+            self.image.save(p, 'png')
             self.dismiss_popup()
             self.setSystemMessage('Save image success')
         except:
-            self.setSystemMessage('Save image error!Check if you have generated the diagram')
+            self.setSystemMessage(
+                'Save image error!Check if you have generated the diagram')
 
     def _on_file_drop(self, window, file_path):
         print(file_path.decode())
@@ -383,10 +397,10 @@ class AFDT(App):
     def saveFile(self):
         self.show_save()
 
-    def setSystemMessage(self,text):
+    def setSystemMessage(self, text):
         self.UI.sysMessageLabel.text = text
 
-    def setUserHintMessage(self,text):
+    def setUserHintMessage(self, text):
         self.UI.userHintMessageLabel.text = text
 
     def importFile(self):
@@ -399,10 +413,12 @@ class AFDT(App):
         self.code = ''
         self.image = ''
         self.getDiagram = ''
-    def _on_mouse_pos(self,w,pos):
+
+    def _on_mouse_pos(self, w, pos):
 
         pass
         #print (pos)
+
     def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
         if len(modifiers) > 0 and modifiers[0] == 'ctrl':
             if text == 'o':  # Ctrl+a
@@ -419,17 +435,20 @@ class AFDT(App):
     def draw(self):
         # self.code
         try:
-            analysis_tool(code = self.code)
+            analysis_tool(code=self.code)
             self.getDiagram = './out.gv.png'
             self.image = Image.open(self.getDiagram)
             self.setSystemMessage('Generate diagram success')
-        except :
-            self.setSystemMessage('Cannot Parse Source. Please Check You Source Code Or Try Other Program.')
-
+            self.UI.imageButton.reload()
+            self.image.show()
+        except:
+            self.setSystemMessage(
+                'Cannot Parse Source. Please Check You Source Code Or Try Other Program.')
 
     def build(self):
         self.UI = UI()
         return self.UI
+
 
 A = AFDT()
 A.run()

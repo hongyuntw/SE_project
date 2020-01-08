@@ -1,6 +1,0 @@
-// Processed Graph
-digraph trueGraph {
-	1.0 [label=1 shape=diamond]
-	1.1 [label=test shape=box]
-	1.0 -> 1.1 [label=true]
-}

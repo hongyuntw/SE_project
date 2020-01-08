@@ -13,34 +13,20 @@ from graphviz import Digraph
 g = Digraph()
 
 data = '''
-bool adj[9][9]; // adjacency matrix
-int ref[9];     // 記錄圖上每一個點目前仍被多少條邊連到
- 
-    for (int i=0; i<9; ++i) ref[i] = 0; // 初始化為0
- 
-    // 累計圖上每一個點被幾條邊連到
-    for (int i=0; i<9; ++i)
-        for (int j=0; j<9; ++j)
-            if (adj[i][j])
-                ref[j]++;
- 
-    // 開始找出一個合理的排列順序
-    for (int i=0; i<9; ++i)
-    {
-        // 尋找沒有被任何邊連向的點
-        int s = 0;
-        while (s < 9 && ref[s] != 0) ++s;
- 
-        if (s == 9) break;  // 找不到。表示目前殘存的圖是個環。
-        ref[s] = -1;        // 設為已找過（刪去s點）
- 
-        cout << s;          // 印出合理的排列順序的第i點
- 
-        // 更新ref的值（刪去由s點連出去的邊）
-        for (int t=0; t<9; ++t)
-            if (adj[s][t])
-                ref[t]--;
-    }
+switch(a){
+    case 1:
+        a++;
+        break;
+    case 2:
+    case 3:
+        a--;
+        break;
+    default:
+        d--;
+        break;
+
+}
+abcd;
 '''
 
 delimiters_dict = {
@@ -89,6 +75,7 @@ t_RP = r'\)'
 t_LBRACE = r'\{'
 t_RBRACE = r'\}'
 t_SEMI = r';'
+t_COLON = r':'
 
 # Define a rule so we can track line numbers
 
@@ -211,6 +198,8 @@ def p_switch_stmt(p):
     global casedict
     global alledge
     global layer
+    global skipbreaknodes
+    global defaultnodes
     flag = False
     p[0] = GetInitData()
 
@@ -224,6 +213,9 @@ def p_switch_stmt(p):
         alledge.append((p[3]['tailNodes'][0], head, 'switch'))
         if (head in casedict):
             pass
+        elif head in defaultnodes and defaultnodes[head][0] in skipbreaknodes and not(defaultnodes[head][0] in allnode):
+            g.edge(head, p[8]['headNodes'][0], label='break')
+            alledge.append((head, p[8]['headNodes'][0], 'break'))
         else:
             seq_t = int(head[: head.find('.')])
             layer_t = int(head[head.find('.')+1:])+1
@@ -265,8 +257,12 @@ def p_switch_stmt(p):
         alledge.append((k, newcasedict[k], ''))
 
     for tail in p[6]['tailNodes']:
-        g.edge(tail, p[8]['tailNodes'][0])
-        alledge.append((tail, p[8]['tailNodes'][0], ''))
+        if (tail in skipbreaknodes):
+            g.edge(tail, p[8]['tailNodes'][0], label='break')
+            alledge.append((tail, p[8]['tailNodes'][0], 'break'))
+        else:
+            g.edge(tail, p[8]['tailNodes'][0])
+            alledge.append((tail, p[8]['tailNodes'][0], ''))
     p[0]['headNodes'].append(p[3]['headNodes'][0])
     p[0]['tailNodes'] = p[8]['tailNodes']
     if (not flag):
@@ -285,6 +281,7 @@ def p_case_stmt(p):
     global layer
     global alledge
     global allnode
+    global skipbreaknodes
     if len(p) == 5:
         p[0]['headNodes'] = p[2]['headNodes']
         p[0]['tailNodes'] = p[4]['tailNodes']
@@ -294,7 +291,10 @@ def p_case_stmt(p):
         allnode[f'{seq}.{layer}'] = ('default', 'box')
         p[0]['headNodes'].append(f'{seq}.{layer}')
         p[0]['tailNodes'] = p[3]['tailNodes']
-        defaultnodes[f'{seq}.{layer}'] = p[3]['tailNodes']
+        defaultnodes[f'{seq}.{layer}'] = p[3]['headNodes']
+        # if p[3]['headNodes'] in skipbreaknodes:
+        #     g.edge(p[3]['headNodes'][0],p[8]['headNodes'][0])
+        #     alledge.append((p[3]['headNodes'][0], p[8]['headNodes'][0], ''))
         layer += 1
 
     elif len(p) == 6:
@@ -387,7 +387,6 @@ def p_whilestmt(p):
     g.edge(p[3]['tailNodes'][0], p[6]['headNodes'][0], label='false')
     alledge.append((p[3]['tailNodes'][0], p[6]['headNodes'][0], 'false'))
 
-    # normal
     if p[5]['tailNodes'][0] in skipbreaknodes:
         # break
         g.edge(p[5]['tailNodes'][0], p[6]['headNodes'][0], label='break')
@@ -395,7 +394,7 @@ def p_whilestmt(p):
     else:
         # loop
         g.edge(p[5]['tailNodes'][0], p[3]['headNodes'][0], label='loop')
-        alledge.append((p[5]['tailNodes'][0], p[3]['headNodes'][0], 'loop'))
+        alledge.append((p[6]['tailNodes'][0], p[3]['headNodes'][0], 'loop'))
 
 
 def p_forstmt(p):
@@ -406,12 +405,26 @@ def p_forstmt(p):
     p[0]['tailNodes'] = p[6]['tailNodes']
     g.edge(p[3]['initNodes'][0], p[3]['boolNodes'][0])
     alledge.append((p[3]['initNodes'][0], p[3]['boolNodes'][0], ''))
+
     g.edge(p[3]['boolNodes'][0], p[5]['headNodes'][0], label='true')
     alledge.append((p[3]['boolNodes'][0], p[5]['headNodes'][0], 'true'))
+
     g.edge(p[3]['boolNodes'][0], p[6]['headNodes'][0], label='false')
     alledge.append((p[3]['boolNodes'][0], p[6]['headNodes'][0], 'false'))
-    g.edge(p[5]['tailNodes'][0], p[3]['postNodes'][0], label='For Routine')
-    alledge.append((p[5]['tailNodes'][0], p[3]['postNodes'][0], 'For Routine'))
+
+    if p[5]['tailNodes'][0] in skipbreaknodes:
+        g.edge(p[5]['tailNodes'][0], p[6]['headNodes'][0], label='break')
+        alledge.append((p[5]['tailNodes'][0], p[6]['headNodes'][0], 'break'))
+        g.edge(p[5]['tailNodes'][0], p[3]['postNodes'][0], label='For Routine')
+        alledge.append((p[5]['tailNodes'][0], p[3]
+                        ['postNodes'][0], 'For Routine'))
+        g.edge(p[3]['postNodes'][0], p[6]['headNodes'][0], label='break')
+        alledge.append((p[3]['postNodes'][0], p[6]['headNodes'][0], 'break'))
+    else:
+        g.edge(p[5]['tailNodes'][0], p[3]['postNodes'][0], label='For Routine')
+        alledge.append((p[5]['tailNodes'][0], p[3]
+                        ['postNodes'][0], 'For Routine'))
+
     g.edge(p[3]['postNodes'][0], p[3]['boolNodes'][0], label='loop')
     alledge.append((p[3]['postNodes'][0], p[3]['boolNodes'][0], 'loop'))
 
@@ -511,13 +524,50 @@ lexer = lex.lex()
 parser = yacc.yacc()
 
 
+def resetGlobals():
+    global casedict
+    global myowndict
+    global need_add_edge
+    global defaultnodes
+    global alledge
+    global allnode
+    global seq
+    global layer
+    global empty
+    global loopflag
+    global breaknodes
+    global skipbreaknodes
+    global previous_node
+    global skipbreaknodes
+    casedict = {}
+    myowndict = {}
+    need_add_edge = {}
+    defaultnodes = {}
+    # 記錄每個node and edge for最後empty處理的部分
+    alledge = []
+    allnode = {}
+    seq = 1
+    layer = 0
+    empty = 0
+    loopflag = False
+    # break資訊
+    breaknodes = []
+    skipbreaknodes = []
+    previous_node = ''
+    skipbreaknodes = []
+
+
 def analysis_tool(code=data):
     global parser
     global lexer
     global g
+    #
     g = Digraph(name='rawGraph', comment='Unprocessed Graph')
     # create a new graph without empty
     newg = Digraph(name='trueGraph', comment='Processed Graph')
+    #
+    resetGlobals()
+    #
     parser.parse(code, lexer=lexer)
 
     emptylist = []
@@ -580,9 +630,9 @@ def analysis_tool(code=data):
         label = tp[2]
         if not (startnode in emptylist or endnode in emptylist):
             newg.edge(startnode, endnode, label=label)
-    newg.render(filename='out.gv.png', format='png')
+    newg.render(filename='out.gv', format='png')
     # g.view()
-    newg.view()
+    # newg.view()
 
 
-analysis_tool(data)
+# analysis_tool(data)
